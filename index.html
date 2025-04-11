@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Use Lamone | Moda Elegante</title>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Fallback para garantir que algo seja exibido mesmo antes do React carregar -->
+      <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+        <h1>Use Lamone | Moda Elegante</h1>
+        <p>Carregando a loja...</p>
+        <noscript>
+          <p style="color: red;">Esta aplicação precisa de JavaScript ativado para funcionar.</p>
+        </noscript>
+      </div>
+    </div>
+    
+    <!-- Script de configuração -->
+    <script>
+      // Hack para garantir que o React seja carregado corretamente
+      window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = { isDisabled: true };
+      
+      // Verificar se existe algum erro
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          const rootElem = document.getElementById('root');
+          // Se o conteúdo original ainda estiver lá após algum tempo, provavelmente há um erro
+          if (rootElem && rootElem.innerHTML.includes('Carregando a loja...')) {
+            console.error('A aplicação React não carregou corretamente');
+            rootElem.innerHTML = `
+              <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+                <h1>Ops! Algo deu errado.</h1>
+                <p>Não foi possível carregar a loja. Por favor, tente recarregar a página.</p>
+                <button onclick="window.location.reload()" style="padding: 10px 20px; background: #D4AF37; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">
+                  Recarregar Página
+                </button>
+              </div>
+            `;
+          }
+        }, 5000); // Espera 5 segundos
+      });
+    </script>
+    
+    <!-- Aplicação React -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

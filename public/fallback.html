@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Use Lamone | Moda Elegante</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      color: #333;
+    }
+    header {
+      background-color: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 15px 0;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 300;
+      color: #333;
+      text-decoration: none;
+    }
+    .hero {
+      height: 100vh;
+      background-image: url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1374');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+      position: relative;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.3);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      max-width: 800px;
+      padding: 0 20px;
+    }
+    h1 {
+      font-size: 48px;
+      font-weight: 300;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+    p {
+      font-size: 20px;
+      margin-bottom: 30px;
+      font-weight: 300;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #D4AF37;
+      color: white;
+      padding: 12px 30px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 400;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #C09C2C;
+    }
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      margin-top: 20px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .reload-btn {
+      background-color: #721c24;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <a href="/" class="logo">USE LAMONE</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Coleção Inverno 2025</h1>
+      <p>Peças leves e elegantes para os dias mais frios</p>
+      <div class="error-message">
+        <p>A aplicação completa não pôde ser carregada. Estamos exibindo uma versão limitada do site.</p>
+        <button class="reload-btn" onclick="window.location.reload()">Tentar Novamente</button>
+      </div>
+      <a href="#" class="btn">Explorar coleção</a>
+    </div>
+  </section>
+
+  <script>
+    // Tentativa de redirecionamento para a aplicação principal após 3 segundos
+    setTimeout(function() {
+      window.location.href = '/';
+    }, 3000);
+  </script>
+</body>
+</html> 
