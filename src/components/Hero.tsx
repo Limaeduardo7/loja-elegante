@@ -1,34 +1,36 @@
 import { useEffect, useRef, useState, TouchEvent } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const sliderItems = [
   {
     id: 1,
-    title: 'Coleção Inverno 2025',
+    title: 'Moda Atemporal, Sofisticada e Moderna',
     description: 'Peças leves e elegantes para os dias mais frios',
     image: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1374',
-    btnText: 'Explorar coleção',
-    btnLink: '#'
+    btnText: 'Garanta seu Look Agora!',
+    btnLink: '/colecao'
   },
   {
     id: 2,
-    title: 'Acessórios exclusivos',
+    title: 'Moda Atemporal, Sofisticada e Moderna',
     description: 'Complete seu look com nossas peças selecionadas',
     image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1470',
-    btnText: 'Ver acessórios',
-    btnLink: '#'
+    btnText: 'Nova coleção disponível!',
+    btnLink: '/colecao?categoria=acessorios'
   },
   {
     id: 3,
-    title: 'Novas tendências',
+    title: 'Moda Atemporal, Sofisticada e Moderna',
     description: 'Descubra as peças que serão tendência nesta estação',
     image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1470',
-    btnText: 'Ver novidades',
-    btnLink: '#'
+    btnText: 'Nova coleção disponível!',
+    btnLink: '/colecao?novidades=true'
   }
 ];
 
 const Hero = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const slideInterval = useRef<number | null>(null);
   const touchStartX = useRef<number | null>(null);
@@ -94,6 +96,11 @@ const Hero = () => {
     touchEndX.current = null;
   };
 
+  // Função para lidar com a navegação ao clicar no botão
+  const handleButtonClick = (path: string) => {
+    navigate(path);
+  };
+
   return (
     <div 
       className="relative w-full h-screen overflow-hidden hero-slider"
@@ -116,18 +123,18 @@ const Hero = () => {
             />
             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
               <div className="text-center max-w-2xl px-4">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl text-white font-light mb-4 tracking-wider">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl text-white font-light mb-4 tracking-wider font-title">
                   {item.title}
                 </h1>
-                <p className="text-xl text-white font-light mb-8 tracking-wide">
+                <p className="text-xl text-white font-light mb-8 tracking-wide font-text">
                   {item.description}
                 </p>
-                <a
-                  href={item.btnLink}
-                  className="inline-block bg-white bg-opacity-70 hover:bg-opacity-90 text-black px-8 py-3 font-light tracking-wide rounded-full transition-all"
+                <button
+                  onClick={() => handleButtonClick(item.btnLink)}
+                  className="inline-block bg-champagne-500 hover:bg-champagne-600 text-white px-8 py-4 font-medium tracking-wide rounded-full transition-all transform hover:scale-105 hover:shadow-lg"
                 >
                   {item.btnText}
-                </a>
+                </button>
               </div>
             </div>
           </div>

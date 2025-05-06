@@ -1,9 +1,12 @@
 'use client';
 
+import * as React from 'react';
+import Link from 'next/link';
+import { Metadata } from 'next';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ProductCard from '@/components/ProductCard';
-import { type Product } from '@/components/ProductDetail';
+import ProductCard from '../../components/ProductCard';
+import { type Product } from '../../data/products';
 
 // Dados de exemplo para produtos
 const mockProducts: Product[] = [
@@ -17,7 +20,11 @@ const mockProducts: Product[] = [
     features: ['Tecido leve', 'Estampa floral', 'Ideal para verão', 'Fechamento com zíper'],
     material: '100% Algodão',
     sizes: ['P', 'M', 'G', 'GG'],
-    colors: ['Rosa', 'Azul', 'Verde'],
+    colors: [
+      { name: 'Rosa', value: '#FF6B81' },
+      { name: 'Azul', value: '#5D8BF4' },
+      { name: 'Verde', value: '#67C587' }
+    ],
     images: [
       'https://images.unsplash.com/photo-1612336307429-8a898d10e223?q=80&w=1887&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?q=80&w=1888&auto=format&fit=crop',
@@ -37,7 +44,11 @@ const mockProducts: Product[] = [
     features: ['Slim fit', 'Tecido durável', 'Forro interno', '2 bolsos frontais'],
     material: '80% Poliéster, 20% Viscose',
     sizes: ['P', 'M', 'G', 'GG'],
-    colors: ['Preto', 'Azul Marinho', 'Cinza'],
+    colors: [
+      { name: 'Preto', value: '#000000' },
+      { name: 'Azul Marinho', value: '#1F3A63' },
+      { name: 'Cinza', value: '#A0A0A0' }
+    ],
     images: [
       'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1738&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?q=80&w=1780&auto=format&fit=crop',
@@ -57,7 +68,11 @@ const mockProducts: Product[] = [
     features: ['Corte skinny', 'Com elastano', 'Cintura média', '5 bolsos'],
     material: '98% Algodão, 2% Elastano',
     sizes: ['34', '36', '38', '40', '42', '44'],
-    colors: ['Azul Claro', 'Azul Escuro', 'Preto'],
+    colors: [
+      { name: 'Azul Claro', value: '#97B3D0' },
+      { name: 'Azul Escuro', value: '#2B4C7E' },
+      { name: 'Preto', value: '#000000' }
+    ],
     images: [
       'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1887&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1582418702059-97ebafb35d09?q=80&w=1915&auto=format&fit=crop',
@@ -77,7 +92,12 @@ const mockProducts: Product[] = [
     features: ['Corte slim', 'Botões perolizados', 'Tecido não amarrota facilmente', 'Punho clássico'],
     material: '100% Algodão',
     sizes: ['P', 'M', 'G', 'GG'],
-    colors: ['Branco', 'Azul Claro', 'Rosa Claro', 'Listrado'],
+    colors: [
+      { name: 'Branco', value: '#FFFFFF' },
+      { name: 'Azul Claro', value: '#A9CCE3' },
+      { name: 'Rosa Claro', value: '#F5B7B1' },
+      { name: 'Listrado', value: '#E8E8E8' }
+    ],
     images: [
       'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=1925&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?q=80&w=1887&auto=format&fit=crop',

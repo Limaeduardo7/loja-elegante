@@ -1,0 +1,37 @@
+# Variáveis de Ambiente Necessárias para o Pagar.me
+
+## No arquivo .env.local (desenvolvimento local)
+
+```
+# URL e chave do Supabase
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_ANON_KEY=sua_chave_anon
+SUPABASE_SERVICE_KEY=sua_chave_service
+
+# Chaves do Pagar.me
+VITE_PAGARME_PUBLIC_KEY=sua_chave_publica_pagarme
+PAGARME_API_KEY=sua_chave_api_secreta_pagarme
+VITE_PAGARME_ACCOUNT_ID=seu_account_id_pagarme
+```
+
+## No painel do Netlify (ambiente de produção)
+
+Acesse: Site settings > Build & deploy > Environment
+
+Adicione as seguintes variáveis:
+
+1. `SUPABASE_URL` = https://seu-projeto.supabase.co
+2. `SUPABASE_SERVICE_KEY` = sua_chave_service (com permissões para escrever no banco)
+3. `PAGARME_API_KEY` = sua_chave_api_secreta_pagarme
+4. `VITE_PAGARME_PUBLIC_KEY` = sua_chave_publica_pagarme 
+5. `VITE_PAGARME_ACCOUNT_ID` = seu_account_id_pagarme
+
+## Importante:
+
+- As chaves privadas (`PAGARME_API_KEY` e `SUPABASE_SERVICE_KEY`) só são acessíveis via serverless functions, nunca no frontend
+- As chaves públicas (`VITE_PAGARME_PUBLIC_KEY`) podem ser acessadas pelo frontend
+
+## Onde obter as chaves:
+
+1. **Supabase**: No painel do Supabase, vá em Settings > API
+2. **Pagar.me**: No painel do Pagar.me, vá em Configurações > Chaves de API 

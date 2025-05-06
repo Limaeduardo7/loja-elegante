@@ -1,20 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, ShoppingBag, Search, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchModal from './SearchModal';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 
 // Tipo para as páginas
-type Page = 'home' | 'collection' | 'about' | 'contact';
+type Page = 'home' | 'collection' | 'about' | 'contact' | 'profile' | 'admin';
 
 // Props para o componente Header
-type HeaderProps = {
-  currentPage: Page;
-};
+interface HeaderProps {
+  currentPage?: Page;
+}
 
-const Header = ({ currentPage }: HeaderProps) => {
+const Header = ({ currentPage = 'home' }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+  const { cartItemsCount } = useCart();
+
+  // Classes para estilização consistente
+  const userLinkClass = `flex items-center text-black hover:text-champagne-500 transition-colors ${
+    currentPage === 'profile' || currentPage === 'admin' ? 'text-champagne-500' : ''
+  }`;
+
+  // Detectar scroll para aplicar efeito ao header
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    // Limpar event listener
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   // Função para fechar o menu mobile após navegação
   const handleNavigation = (path: string) => {
@@ -22,10 +50,81 @@ const Header = ({ currentPage }: HeaderProps) => {
     setIsMenuOpen(false);
   };
 
-  // Determinar estilo do cabeçalho com base na página atual
+  // Determinar estilo do cabeçalho com base na página atual e scroll
   const headerClassName = currentPage === 'home'
-    ? "absolute top-0 left-0 right-0 bg-white z-50"
-    : "fixed top-0 left-0 right-0 bg-white z-50 shadow-sm";
+    ? scrolled 
+      ? "fixed top-0 left-0 right-0 bg-white z-50 shadow-md transition-all duration-300"
+      : "fixed top-0 left-0 right-0 bg-white bg-opacity-95 z-50 transition-all duration-300"
+    : "fixed top-0 left-0 right-0 bg-white z-50 shadow-sm transition-all duration-300";
+
+  // Renderiza o ícone de usuário com o texto apropriado de acordo com o status de autenticação
+  const renderUserLink = () => {
+    // No cabeçalho desktop
+    if (!isMenuOpen) {
+      if (isAdmin) {
+        return (
+          <Link to="/admin" className={`${userLinkClass}`}>
+            <User className="h-5 w-5 mr-2" />
+            <span className="hidden md:inline">Admin</span>
+          </Link>
+        );
+      }
+      
+      if (user) {
+        return (
+          <Link to="/perfil" className={`${userLinkClass}`}>
+            <User className="h-5 w-5" />
+          </Link>
+        );
+      }
+      
+      return (
+        <Link to="/conta" className={`${userLinkClass}`}>
+          <User className="h-5 w-5 mr-2" />
+          <span className="hidden md:inline">Entrar</span>
+        </Link>
+      );
+    } 
+    // No menu mobile - centralizado como os outros ícones
+    else {
+      if (isAdmin) {
+        return (
+          <Link 
+            to="/admin" 
+            className="text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <User className="h-5 w-5 mr-3" />
+            Admin
+          </Link>
+        );
+      }
+      
+      if (user) {
+        return (
+          <Link 
+            to="/perfil" 
+            className="text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <User className="h-5 w-5 mr-3" />
+            Minha Conta
+          </Link>
+        );
+      }
+      
+      return (
+        <Link 
+          to="/conta" 
+          className="text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <User className="h-5 w-5 mr-3" />
+          Entrar
+        </Link>
+      );
+    }
+  };
 
   return (
     <header className={headerClassName}>
@@ -35,7 +134,7 @@ const Header = ({ currentPage }: HeaderProps) => {
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center cursor-pointer">
               <img 
-                src="https://i.imgur.com/B9Vn5kP.png" 
+                src="https://plrojewhtzgsmehkxlxu.supabase.co/storage/v1/object/public/images//Design%20sem%20nome%20(57).png" 
                 alt="Use Lamone" 
                 className="h-10 object-contain" 
               />
@@ -46,25 +145,25 @@ const Header = ({ currentPage }: HeaderProps) => {
           <nav className="hidden md:flex space-x-8">
             <Link 
               to="/" 
-              className={`${currentPage === 'home' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer`}
+              className={`${currentPage === 'home' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer`}
             >
               Início
             </Link>
             <Link 
               to="/colecao" 
-              className={`${currentPage === 'collection' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer`}
+              className={`${currentPage === 'collection' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer`}
             >
               Coleção
             </Link>
             <Link 
               to="/sobre" 
-              className={`${currentPage === 'about' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer`}
+              className={`${currentPage === 'about' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer`}
             >
               Sobre
             </Link>
             <Link 
               to="/contato" 
-              className={`${currentPage === 'contact' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer`}
+              className={`${currentPage === 'contact' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer`}
             >
               Contato
             </Link>
@@ -73,23 +172,23 @@ const Header = ({ currentPage }: HeaderProps) => {
           {/* Icons */}
           <div className="flex items-center space-x-4">
             <button 
-              className="text-black hover:text-gold-500 transition-colors"
+              className="text-black hover:text-champagne-500 transition-colors"
               onClick={() => setIsSearchOpen(true)}
               aria-label="Pesquisar"
             >
               <Search size={20} />
             </button>
-            <Link to="/conta" className="text-black hover:text-gold-500 transition-colors">
-              <User size={20} />
-            </Link>
-            <Link to="/carrinho" className="text-black hover:text-gold-500 transition-colors relative">
+            {renderUserLink()}
+            <Link to="/carrinho" className="text-black hover:text-champagne-500 transition-colors relative">
               <ShoppingBag size={20} />
-              <span className="absolute -top-1 -right-1 bg-gold-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                0
-              </span>
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-champagne-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                </span>
+              )}
             </Link>
             <button
-              className="md:hidden text-black hover:text-gold-500 transition-colors"
+              className="md:hidden text-black hover:text-champagne-500 transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Menu"
             >
@@ -105,12 +204,12 @@ const Header = ({ currentPage }: HeaderProps) => {
           <div className="container mx-auto px-4 py-4 h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <img 
-                src="https://i.imgur.com/B9Vn5kP.png" 
+                src="https://plrojewhtzgsmehkxlxu.supabase.co/storage/v1/object/public/images//Design%20sem%20nome%20(57).png" 
                 alt="Use Lamone" 
                 className="h-8 object-contain" 
               />
               <button
-                className="text-black hover:text-gold-500 transition-colors"
+                className="text-black hover:text-champagne-500 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
                 aria-label="Fechar menu"
               >
@@ -121,28 +220,28 @@ const Header = ({ currentPage }: HeaderProps) => {
               <div className="space-y-4 mb-8">
                 <Link 
                   to="/" 
-                  className={`${currentPage === 'home' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer py-2 block`}
+                  className={`${currentPage === 'home' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Início
                 </Link>
                 <Link 
                   to="/colecao" 
-                  className={`${currentPage === 'collection' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer py-2 block`}
+                  className={`${currentPage === 'collection' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Coleção
                 </Link>
                 <Link 
                   to="/sobre" 
-                  className={`${currentPage === 'about' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer py-2 block`}
+                  className={`${currentPage === 'about' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sobre
                 </Link>
                 <Link 
                   to="/contato" 
-                  className={`${currentPage === 'contact' ? 'text-gold-500' : 'text-black'} font-light hover:text-gold-500 transition-colors cursor-pointer py-2 block`}
+                  className={`${currentPage === 'contact' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Contato
@@ -154,7 +253,7 @@ const Header = ({ currentPage }: HeaderProps) => {
               {/* Ícones centralizados verticalmente */}
               <div className="flex flex-col space-y-6 my-auto">
                 <button
-                  className="text-black font-light hover:text-gold-500 transition-colors cursor-pointer py-2 flex items-center justify-center"
+                  className="text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center"
                   onClick={() => {
                     setIsMenuOpen(false);
                     setIsSearchOpen(true);
@@ -163,24 +262,19 @@ const Header = ({ currentPage }: HeaderProps) => {
                   <Search size={20} className="mr-3" />
                   Pesquisar
                 </button>
-                <Link 
-                  to="/conta" 
-                  className={`text-black font-light hover:text-gold-500 transition-colors cursor-pointer py-2 flex items-center justify-center`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <User size={20} className="mr-3" />
-                  Minha Conta
-                </Link>
+                {renderUserLink()}
                 <Link 
                   to="/carrinho" 
-                  className={`text-black font-light hover:text-gold-500 transition-colors cursor-pointer py-2 flex items-center justify-center`}
+                  className={`text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <ShoppingBag size={20} className="mr-3" />
                   Carrinho
-                  <span className="ml-3 bg-gold-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    0
-                  </span>
+                  {cartItemsCount > 0 && (
+                    <span className="ml-3 bg-champagne-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                    </span>
+                  )}
                 </Link>
               </div>
             </nav>

@@ -2,7 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import ProductDetail, { Product } from '@/components/ProductDetail';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { ProductDetail } from '../../../components/ProductDetail';
+
+// Defina o tipo Product localmente
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  description: string;
+  features: string[];
+  material: string;
+  sizes: string[];
+  colors: { name: string; value: string; }[];
+  images: string[];
+  discount?: number;
+  isNew?: boolean;
+  tags: string[];
+}
 
 export default function ProdutoDetalhe() {
   const params = useParams();
@@ -21,7 +41,11 @@ export default function ProdutoDetalhe() {
       features: ["Tecido leve", "Estampa floral", "Manga curta", "Decote V"],
       material: "100% Algodão",
       sizes: ["P", "M", "G", "GG"],
-      colors: ["Azul", "Rosa", "Verde"],
+      colors: [
+        { name: "Azul", value: "#0000FF" },
+        { name: "Rosa", value: "#FFC0CB" },
+        { name: "Verde", value: "#00FF00" }
+      ],
       images: [
         "/images/produtos/vestido-floral-1.jpg",
         "/images/produtos/vestido-floral-2.jpg",
@@ -41,7 +65,11 @@ export default function ProdutoDetalhe() {
       features: ["Cintura alta", "Corte reto", "5 bolsos", "Lavagem média"],
       material: "98% Algodão, 2% Elastano",
       sizes: ["36", "38", "40", "42", "44"],
-      colors: ["Azul médio", "Azul escuro", "Preto"],
+      colors: [
+        { name: "Azul médio", value: "#0000A0" },
+        { name: "Azul escuro", value: "#00008B" },
+        { name: "Preto", value: "#000000" }
+      ],
       images: [
         "/images/produtos/calca-jeans-1.jpg",
         "/images/produtos/calca-jeans-2.jpg",

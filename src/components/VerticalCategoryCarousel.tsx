@@ -1,51 +1,34 @@
 import { useState, useRef, useEffect, TouchEvent } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-const categories = [
-  {
-    id: 1,
-    name: 'Vestidos',
-    image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?q=80&w=1376',
-    description: 'Elegância em cada detalhe'
-  },
-  {
-    id: 2,
-    name: 'Blusas',
-    image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?q=80&w=1374',
-    description: 'Conforto com estilo'
-  },
-  {
-    id: 3,
-    name: 'Acessórios',
-    image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?q=80&w=1374',
-    description: 'Detalhes que fazem a diferença'
-  },
-  {
-    id: 4,
-    name: 'Calçados',
-    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1480',
-    description: 'Passos de sofisticação'
-  },
-  {
-    id: 5,
-    name: 'Bolsas',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1335',
-    description: 'Praticidade elegante'
-  },
-  {
-    id: 6,
-    name: 'Jeans',
-    image: 'https://images.unsplash.com/photo-1604176424472-4022da2d054a?q=80&w=1974',
-    description: 'O clássico reinventado'
-  }
-];
+import { getCategories } from '../lib/services/categoryService';
+import { Category } from '../types/product';
 
 const VerticalCategoryCarousel = () => {
   const [startIndex, setStartIndex] = useState(0);
+  const [categories, setCategories] = useState<Category[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [visibleItems, setVisibleItems] = useState(4);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+
+  // Buscar categorias do banco de dados
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await getCategories();
+        
+        if (error) throw error;
+        
+        // Filtrar apenas categorias ativas
+        const activeCategories = data?.filter((category: Category) => category.is_active) || [];
+        setCategories(activeCategories);
+      } catch (err) {
+        console.error('Erro ao carregar categorias para o carrossel:', err);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const updateVisibleItems = () => {
@@ -85,8 +68,11 @@ const VerticalCategoryCarousel = () => {
   };
 
   const displayedCategories = () => {
+    if (categories.length === 0) return [];
+    
     const items = [];
     for (let i = 0; i < visibleItems; i++) {
+      if (categories.length <= i) break; // Evitar erros se houver menos categorias que visibleItems
       const index = (startIndex + i) % categories.length;
       items.push(categories[index]);
     }
@@ -148,7 +134,7 @@ const VerticalCategoryCarousel = () => {
               <div key={category.id} className="min-w-[260px] flex-1">
                 <div className="group overflow-hidden relative h-[500px]">
                   <img
-                    src={category.image}
+                    src={category.image_url || 'https://placehold.co/400x600/png?text=Imagem+não+disponível'}
                     alt={category.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
@@ -157,10 +143,10 @@ const VerticalCategoryCarousel = () => {
                       {category.name}
                     </h3>
                     <p className="text-white font-light opacity-90 mb-3">
-                      {category.description}
+                      {category.description || 'Explore nossa coleção exclusiva'}
                     </p>
                     <a
-                      href="#"
+                      href={`/colecao?categoria=${category.slug}`}
                       className="inline-block bg-white bg-opacity-70 hover:bg-opacity-90 text-black py-2 px-6 font-light tracking-wide max-w-max rounded-full transition-all"
                     >
                       Explorar

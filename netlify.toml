@@ -27,6 +27,13 @@
     Access-Control-Allow-Methods = "GET,POST,OPTIONS"
     Access-Control-Allow-Headers = "X-Requested-With,Content-Type,Accept,Origin"
 
+# Configuração para API functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
 # Configuração para SPA
 [[redirects]]
   from = "/*"
@@ -37,4 +44,9 @@
 [[redirects]]
   from = "/*"
   to = "/fallback.html"
-  status = 404 
+  status = 404
+
+# Definição de funções serverless
+[functions]
+  directory = "api"
+  node_bundler = "esbuild" 

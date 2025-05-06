@@ -13,6 +13,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
 
   // Calcular preço com desconto, se houver
   const discountedPrice = discount ? price * (1 - discount / 100) : null;
+  
+  // Valor final para exibição (com desconto, se houver)
+  const finalPrice = discountedPrice || price;
+  
+  // Calcular valor parcelado em 10x
+  const installmentPrice = finalPrice / 10;
 
   // Formatar preços
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
@@ -26,6 +32,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
         currency: 'BRL',
       }).format(discountedPrice)
     : null;
+    
+  const formattedInstallmentPrice = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(installmentPrice);
 
   // Função para lidar com o clique no produto
   const handleClick = () => {
@@ -46,20 +57,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
         </div>
         <div className="p-4">
           <p className="text-sm text-gray-500 mb-1">{category}</p>
-          <h3 className="font-semibold text-lg mb-2 line-clamp-1">{name}</h3>
+          <h3 className="font-semibold text-lg mb-2 line-clamp-1 font-title">{name}</h3>
           <div className="font-bold text-primary">
             {discountedPrice ? (
               <div className="flex items-center gap-2">
                 <span className="text-gray-500 line-through text-sm font-light">
                   {formattedPrice}
                 </span>
-                <span className="text-gold-600 font-light">
+                <span className="text-champagne-600 font-light">
                   {formattedDiscountedPrice}
                 </span>
               </div>
             ) : (
-              formattedPrice
+              <span className="text-champagne-600 font-light">{formattedPrice}</span>
             )}
+            <p className="text-xs text-gray-500 mt-1 font-text">
+              ou 10x de {formattedInstallmentPrice} sem juros
+            </p>
           </div>
         </div>
       </div>

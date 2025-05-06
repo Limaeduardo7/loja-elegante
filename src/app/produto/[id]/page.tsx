@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import ProductDetail from '@/components/ProductDetail';
-import { products } from '@/data/products';
+import { ProductDetail } from '../../../components/ProductDetail';
+import { products } from '../../../data/products';
 
 type ProductPageProps = {
   params: {

@@ -1,0 +1,61 @@
+/* Estilos para o componente de checkout do Pagar.me */
+.pagarme-checkout {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Estilos para os botões de método de pagamento */
+.pagarme-checkout .method-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background-color: white;
+  transition: all 0.2s;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.pagarme-checkout .method-btn:hover {
+  border-color: #d1d5db;
+  background-color: #f9fafb;
+}
+
+.pagarme-checkout .method-btn.active {
+  border-color: #4f46e5;
+  background-color: #f5f3ff;
+}
+
+.pagarme-checkout .method-btn.active:hover {
+  background-color: #ede9fe;
+}
+
+/* Estilos para os formulários */
+.pagarme-checkout input:focus,
+.pagarme-checkout select:focus,
+.pagarme-checkout textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px #4f46e5;
+}
+
+/* Estilos para os cartões de métodos de pagamento */
+.pagarme-checkout .payment-form > div {
+  transition: all 0.3s ease;
+}
+
+/* Animações */
+.pagarme-checkout .animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+} 

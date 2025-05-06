@@ -1,12 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Star, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Product } from '@/data/products';
+import { cn } from '../lib/utils';
+import { Button } from '../components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+
+// Atualização dos tipos para incluir cores com imagens
+interface ProductColor {
+  id?: string;
+  name: string;
+  value: string; // código de cor
+  image_url?: string; // URL da imagem associada à cor
+}
+
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  discount?: number;
+  images: string[];
+  colors: ProductColor[];
+  sizes: string[];
+  category: string;
+  material: string;
+  isNew?: boolean;
+  shipsToday?: boolean;
+  features: string[];
+  tags?: string[];
+}
 
 interface ProductDetailProps {
   product: Product;
@@ -14,17 +38,48 @@ interface ProductDetailProps {
 
 export function ProductDetail({ product }: ProductDetailProps) {
   const [mainImage, setMainImage] = useState<string>(product.images[0]);
-  const [selectedColor, setSelectedColor] = useState<{ name: string; value: string }>(product.colors[0]);
+  const [selectedColor, setSelectedColor] = useState<ProductColor>(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState<string>(product.sizes[0]);
   const [quantity, setQuantity] = useState<number>(1);
+  const [thumbnails, setThumbnails] = useState<string[]>(product.images);
 
   // Calcular o preço final com desconto, se aplicável
   const finalPrice = product.discount
     ? product.price * (1 - product.discount / 100)
     : product.price;
 
+  // Atualizar as imagens exibidas quando a cor for alterada
+  useEffect(() => {
+    // Se a cor selecionada tem uma imagem associada, definir como imagem principal
+    if (selectedColor.image_url) {
+      setMainImage(selectedColor.image_url);
+      
+      // Criar um array com a imagem da cor como primeira e as demais imagens do produto
+      const colorImageIndex = product.images.indexOf(selectedColor.image_url);
+      let newThumbnails: string[] = [];
+      
+      // Se a imagem da cor já está no array de imagens do produto, priorizá-la
+      if (colorImageIndex >= 0) {
+        newThumbnails = [
+          ...product.images.slice(colorImageIndex, colorImageIndex + 1),
+          ...product.images.slice(0, colorImageIndex),
+          ...product.images.slice(colorImageIndex + 1)
+        ];
+      } else {
+        // Se não, adicionar a imagem da cor como primeira imagem
+        newThumbnails = [selectedColor.image_url, ...product.images];
+      }
+      
+      setThumbnails(newThumbnails);
+    } else {
+      // Se não tem imagem associada, voltar para as imagens originais do produto
+      setMainImage(product.images[0]);
+      setThumbnails(product.images);
+    }
+  }, [selectedColor, product.images]);
+
   // Funções de manipulação
-  const handleColorChange = (color: { name: string; value: string }) => {
+  const handleColorChange = (color: ProductColor) => {
     setSelectedColor(color);
   };
 
@@ -69,7 +124,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
           </div>
           
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {product.images.map((img, index) => (
+            {thumbnails.map((img, index) => (
               <button
                 key={index}
                 className={cn(
@@ -134,13 +189,24 @@ export function ProductDetail({ product }: ProductDetailProps) {
                   <button
                     key={color.name}
                     className={cn(
-                      "h-8 w-8 rounded-full border",
+                      "h-10 w-10 rounded-full border relative group",
                       selectedColor.name === color.name ? "ring-2 ring-primary ring-offset-2" : ""
                     )}
                     style={{ backgroundColor: color.value }}
                     onClick={() => handleColorChange(color)}
                     aria-label={`Cor ${color.name}`}
-                  />
+                  >
+                    {color.image_url && (
+                      <div className="absolute inset-0 rounded-full overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Image 
+                          src={color.image_url} 
+                          alt={`Imagem da cor ${color.name}`} 
+                          fill 
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                  </button>
                 ))}
               </div>
             </div>
@@ -248,8 +314,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 <h3 className="text-lg font-medium mb-3">Devolução</h3>
                 <p className="text-gray-700">
                   Este produto pode ser devolvido em até 30 dias após o recebimento, 
-                  desde que esteja em perfeitas condições, com etiquetas intactas 
-                  e na embalagem original.
+                  desde que esteja em perfeitas condições e com a embalagem original.
                 </p>
               </div>
             </div>
