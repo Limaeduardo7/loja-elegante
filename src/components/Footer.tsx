@@ -39,7 +39,7 @@ const Footer = () => {
               </li>
               <li className="flex flex-col items-center">
                 <Phone size={18} className="text-champagne-500 mb-1" />
-                <a href="tel:+5511992698485" className="text-gray-600 text-sm hover:text-champagne-500 transition-colors font-light">(11) 99269-8485</a>
+                <a href="tel:+5511990012305" className="text-gray-600 text-sm hover:text-champagne-500 transition-colors font-light">(11) 99001-2305</a>
               </li>
               <li className="flex flex-col items-center">
                 <Mail size={18} className="text-rose-300 mb-1" />
@@ -124,11 +124,11 @@ const Footer = () => {
                 </li>
                 <li className="flex flex-col md:flex-row items-center md:items-center">
                   <Phone size={20} className="text-champagne-500 mb-2 md:mr-2 md:mb-0 flex-shrink-0" />
-                  <a href="tel:+5511992698485" className="text-gray-600 hover:text-champagne-500 transition-colors font-light">(11) 99269-8485</a>
+                  <a href="tel:+5511990012305" className="text-gray-600 hover:text-champagne-500 transition-colors font-light">(11) 99001-2305</a>
                 </li>
                 <li className="flex flex-col md:flex-row items-center md:items-center">
                   <Mail size={20} className="text-rose-300 mb-2 md:mr-2 md:mb-0 flex-shrink-0" />
-                  <a href="mailto:contato@uselamone.com" className="text-gray-600 hover:text-rose-400 transition-colors font-light">contato@uselamone.com</a>
+                  <a href="mailto:contato@uselamone.com.br" className="text-gray-600 hover:text-rose-400 transition-colors font-light">contato@uselamone.com</a>
                 </li>
             </ul>
             </div>

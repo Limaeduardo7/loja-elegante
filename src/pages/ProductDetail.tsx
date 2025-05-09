@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Star, Plus, Minus, ShoppingBag, Heart, Truck, Shield, ArrowLeft, X, ChevronRight, ChevronLeft, Ruler, AlertTriangle, Check, Info, Clock, ZoomIn } from 'lucide-react';
+import { Star, Plus, Minus, ShoppingBag, Heart, Truck, Shield, ArrowLeft, X, ChevronRight, ChevronLeft, Ruler, AlertTriangle, Check, Info, Clock, ZoomIn, Bell } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '../components/ui/dialog';
@@ -117,9 +117,11 @@ const ProductDetail = () => {
     }
     
     // Caso não tenha variante específica ou sem variantes, verificar estoque geral
+    // Verificamos se há pelo menos um produto em estoque na soma total
+    const totalStock = productData.variants.reduce((total, v) => total + v.stock_quantity, 0);
     setStockInfo({ 
-      available: productData.in_stock, 
-      quantity: productData.variants.reduce((total, v) => total + v.stock_quantity, 0)
+      available: totalStock > 0, 
+      quantity: totalStock
     });
   };
 
@@ -176,29 +178,41 @@ const ProductDetail = () => {
   };
 
   const addToCart = async () => {
-    if (!product || !id) return;
-    
     setAddingToCart(true);
     
     try {
-      // Obter ou criar o carrinho
+      // Obter ou criar o carrinho primeiro
       const { cart, error: cartError } = await getOrCreateCart();
       
       if (cartError || !cart) {
         throw new Error('Não foi possível acessar o carrinho de compras');
       }
       
-      // Encontrar a variante selecionada pelo usuário (cor e tamanho)
-      let variantId: string | undefined;
+      // Verificar se temos um ID de variante (cor/tamanho) selecionado
+      let variantId = '';
       
-      if (selectedColor && selectedSize && product.variants) {
-        const variant = product.variants.find(v => 
-          v.color_id === selectedColor.id && v.size_id === selectedSize.id
+      if (product && product.variants && product.variants.length > 0) {
+        // Se o produto tem variantes, verificar se cor e tamanho foram selecionados
+        if (!selectedColor) {
+          throw new Error('Por favor, selecione uma cor');
+        }
+        
+        if (!selectedSize) {
+          throw new Error('Por favor, selecione um tamanho');
+        }
+        
+        // Encontrar a variante correspondente à cor e tamanho selecionados
+        const variant = product.variants.find(
+          v => v.color_id === selectedColor.id && v.size_id === selectedSize.id
         );
         
         if (variant) {
           variantId = variant.id;
         }
+      }
+      
+      if (!id) {
+        throw new Error('ID do produto não encontrado');
       }
       
       // Adicionar ao carrinho
@@ -216,11 +230,8 @@ const ProductDetail = () => {
       // Atualizar contagem de itens no carrinho
       await updateCartItemsCount();
       
-      alert(`${quantity} unidade(s) do produto "${product.name}" adicionado ao carrinho!`);
-      
     } catch (error: any) {
       console.error('Erro ao adicionar ao carrinho:', error);
-      alert(`Erro: ${error.message || 'Não foi possível adicionar o item ao carrinho'}`);
     } finally {
       setAddingToCart(false);
     }
@@ -246,8 +257,8 @@ const ProductDetail = () => {
   };
 
   const getStockStatus = () => {
-    if (!stockInfo.available) return { color: "red", text: "Indisponível" };
-    if (stockInfo.quantity <= 3) return { color: "red", text: `Apenas ${stockInfo.quantity} unidades em estoque!` };
+    if (!stockInfo.available || stockInfo.quantity <= 0) return { color: "red", text: "Fora de estoque" };
+    if (stockInfo.quantity <= 3) return { color: "red", text: `Últimas ${stockInfo.quantity} unidades!` };
     if (stockInfo.quantity <= 10) return { color: "orange", text: `Baixo estoque: ${stockInfo.quantity} unidades` };
     return { color: "green", text: "Em estoque" };
   };
@@ -322,7 +333,7 @@ const ProductDetail = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
           {/* Seção de imagens */}
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             {/* Seletores de tipo de imagem (produto/modelo) */}
             <div className="flex mb-4 border-b border-gray-200">
               <button 
@@ -341,74 +352,15 @@ const ProductDetail = () => {
               )}
             </div>
             
-            <div 
-              ref={imageRef}
-              className={`relative h-[600px] w-full rounded-lg overflow-hidden bg-gray-50 cursor-zoom-in ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
-              onClick={toggleZoom}
-              onMouseMove={handleMouseMove}
-            >
-              <div className="absolute top-4 right-4 z-10 flex space-x-2">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleZoom();
-                  }}
-                  className="h-10 w-10 rounded-full bg-white shadow-md flex items-center justify-center transition-all hover:shadow-lg"
-                >
-                  <ZoomIn className="h-5 w-5 text-gray-600" />
-                </button>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite();
-                  }}
-                  className="h-10 w-10 rounded-full bg-white shadow-md flex items-center justify-center transition-all hover:shadow-lg"
-                >
-                  <Heart 
-                    id="heart-icon"
-                    className={`h-5 w-5 transition-all ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
-                  />
-                </button>
-              </div>
-              
-              {isZoomed ? (
-                <div 
-                  className="absolute inset-0 w-full h-full"
-                  style={{
-                    backgroundImage: `url(${mainImage})`,
-                    backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                    backgroundSize: '200%',
-                    backgroundRepeat: 'no-repeat'
-                  }}
-                />
-              ) : (
-                <img
-                  src={mainImage}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-            
-            <div className="flex items-center">
-              <button 
-                className="h-8 w-8 flex items-center justify-center bg-gray-100 rounded-full mr-2 hover:bg-gray-200"
-                onClick={() => {
-                  const currentIndex = displayImages.findIndex(img => img === mainImage);
-                  const prevIndex = (currentIndex - 1 + displayImages.length) % displayImages.length;
-                  setMainImage(displayImages[prevIndex]);
-                }}
-              >
-                <ChevronLeft size={18} />
-              </button>
-              
-              <div className="flex-1 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+              {/* Miniaturas ao lado esquerdo para desktop */}
+              <div className="order-2 md:order-1 md:w-24 md:h-[600px] overflow-x-auto md:overflow-y-auto md:overflow-x-hidden md:pr-2">
+                <div className="flex md:flex-col gap-4 pb-2 md:pb-0">
                   {displayImages.map((img, index) => (
                     <button
                       key={index}
                       className={cn(
-                        "relative h-24 w-24 flex-shrink-0 rounded-md overflow-hidden border-2 transition-all",
+                        "relative h-20 w-20 flex-shrink-0 rounded-md overflow-hidden border-2 transition-all",
                         mainImage === img ? "border-champagne-500 shadow-md" : "border-transparent hover:border-gray-200"
                       )}
                       onClick={() => setMainImage(img)}
@@ -423,16 +375,55 @@ const ProductDetail = () => {
                 </div>
               </div>
               
-              <button 
-                className="h-8 w-8 flex items-center justify-center bg-gray-100 rounded-full ml-2 hover:bg-gray-200"
-                onClick={() => {
-                  const currentIndex = displayImages.findIndex(img => img === mainImage);
-                  const nextIndex = (currentIndex + 1) % displayImages.length;
-                  setMainImage(displayImages[nextIndex]);
-                }}
+              {/* Imagem principal */}
+              <div 
+                ref={imageRef}
+                className={`order-1 md:order-2 relative h-[600px] flex-grow rounded-lg overflow-hidden bg-gray-50 cursor-zoom-in ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                onClick={toggleZoom}
+                onMouseMove={handleMouseMove}
               >
-                <ChevronRight size={18} />
-              </button>
+                <div className="absolute top-4 right-4 z-10 flex space-x-2">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleZoom();
+                    }}
+                    className="h-10 w-10 rounded-full bg-white shadow-md flex items-center justify-center transition-all hover:shadow-lg"
+                  >
+                    <ZoomIn className="h-5 w-5 text-gray-600" />
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite();
+                    }}
+                    className="h-10 w-10 rounded-full bg-white shadow-md flex items-center justify-center transition-all hover:shadow-lg"
+                  >
+                    <Heart 
+                      id="heart-icon"
+                      className={`h-5 w-5 transition-all ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                    />
+                  </button>
+                </div>
+                
+                {isZoomed ? (
+                  <div 
+                    className="absolute inset-0 w-full h-full"
+                    style={{
+                      backgroundImage: `url(${mainImage})`,
+                      backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                      backgroundSize: '200%',
+                      backgroundRepeat: 'no-repeat'
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={mainImage}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
             </div>
           </div>
           
@@ -440,7 +431,7 @@ const ProductDetail = () => {
           <div className="space-y-8">
             <div>
               {product.isNew && (
-                <span class="inline-block bg-rose-300 text-white text-xs px-3 py-1 rounded-full font-medium mb-3">
+                <span className="inline-block bg-rose-300 text-white text-xs px-3 py-1 rounded-full font-medium mb-3">
                   Novidade
                 </span>
               )}
@@ -667,19 +658,64 @@ const ProductDetail = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              {/* Alerta de produto fora de estoque */}
+              {!stockInfo.available && (
+                <div className="w-full p-3 mb-2 bg-red-50 border border-red-200 rounded-md flex items-center text-red-700">
+                  <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
+                  <span className="text-sm">Este produto está temporariamente fora de estoque.</span>
+                </div>
+              )}
+              
               <Button 
-                className="py-7 px-8 bg-green-600 hover:bg-green-700 text-base font-medium tracking-wide flex-1 shadow-lg hover:shadow-xl" 
+                className={`py-7 px-8 text-base font-medium tracking-wide flex-1 shadow-lg hover:shadow-xl ${
+                  stockInfo.available 
+                    ? "bg-green-600 hover:bg-green-700" 
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
                 onClick={buyNow}
+                disabled={!stockInfo.available}
               >
-                COMPRE AGORA
+                {stockInfo.available ? "COMPRE AGORA" : "INDISPONÍVEL"}
               </Button>
               
               <Button 
-                className="py-4 px-8 bg-rose-300 hover:bg-rose-400 text-base font-light tracking-wide flex-1" 
+                className={`py-4 px-8 text-base font-light tracking-wide flex-1 ${
+                  stockInfo.available 
+                    ? "bg-rose-300 hover:bg-rose-400" 
+                    : "bg-gray-300 cursor-not-allowed"
+                }`}
                 onClick={addToCart}
+                disabled={!stockInfo.available}
               >
-                <ShoppingBag className="mr-2 h-5 w-5" /> Adicionar ao Carrinho
+                <ShoppingBag className="mr-2 h-5 w-5" /> 
+                {stockInfo.available ? "Adicionar ao Carrinho" : "Indisponível"}
               </Button>
+            </div>
+
+            {/* Status de estoque e aviso de notificação */}
+            <div className="pt-2">
+              {!stockInfo.available ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="h-3 w-3 bg-red-500 rounded-full mr-2"></div>
+                    <span className="text-sm text-red-700 font-medium">Fora de estoque</span>
+                  </div>
+                  <button 
+                    className="text-sm text-champagne-500 hover:underline flex items-center"
+                    onClick={() => alert('Você será notificado quando este produto voltar ao estoque.')}
+                  >
+                    <Bell className="h-4 w-4 mr-1" />
+                    Avise-me quando disponível
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <div className={`h-3 w-3 rounded-full mr-2 bg-${stockStatus.color}-500`}></div>
+                  <span className={`text-sm text-${stockStatus.color}-700`}>
+                    {stockStatus.text}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
@@ -738,13 +774,13 @@ const ProductDetail = () => {
             <ShippingCalculator
               products={[{
                 id: product.id,
-                width: product.width || 15,
-                height: product.height || 5,
-                length: product.length || 20,
+                width: 15,
+                height: 5,
+                length: 20,
                 weight: product.weight || 0.5,
                 insurance_value: product.price || 0,
                 quantity: quantity
-              }]}
+              } as any]}
               compact={true}
             />
           </div>
