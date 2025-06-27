@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DroppableProvided, DraggableProvided, DropResult } from 'react-beautiful-dnd';
 import { toast } from 'react-hot-toast';
 import { 
   getAllBanners, 
@@ -35,7 +35,7 @@ const GerenciarBanners = () => {
     }
   };
 
-  const handleDragEnd = async (result: any) => {
+  const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(banners);
@@ -228,8 +228,15 @@ const GerenciarBanners = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-champagne-500">Carregando...</div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-light text-gray-900">
+            Gerenciar <span className="text-champagne-500">Banners</span>
+          </h1>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-pulse text-champagne-500">Carregando...</div>
+        </div>
       </div>
     );
   }
@@ -237,23 +244,31 @@ const GerenciarBanners = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-light">
+        <h1 className="text-3xl font-light text-gray-900">
           Gerenciar <span className="text-champagne-500">Banners</span>
         </h1>
-        <button
-          onClick={() => {
-            setEditingBanner(null);
-            setIsModalOpen(true);
-          }}
-          className="px-4 py-2 bg-champagne-500 text-white rounded-md hover:bg-champagne-600"
-        >
-          Novo Banner
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => navigate('/admin/configuracoes')}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Voltar
+          </button>
+          <button
+            onClick={() => {
+              setEditingBanner(null);
+              setIsModalOpen(true);
+            }}
+            className="px-4 py-2 bg-champagne-500 text-white rounded-md hover:bg-champagne-600 transition-colors"
+          >
+            Novo Banner
+          </button>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="banners">
-          {(provided) => (
+          {(provided: DroppableProvided) => (
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
@@ -261,26 +276,24 @@ const GerenciarBanners = () => {
             >
               {banners.map((banner, index) => (
                 <Draggable key={banner.id} draggableId={banner.id} index={index}>
-                  {(provided) => (
+                  {(provided: DraggableProvided) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className={`bg-white p-4 rounded-lg shadow-md border ${
-                        banner.is_active ? 'border-green-200' : 'border-gray-200'
-                      }`}
+                      className="bg-white p-6 rounded-lg shadow-md border border-gray-100"
                     >
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={banner.image_url}
-                          alt={banner.title}
-                          className="w-32 h-20 object-cover rounded"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-medium">{banner.title}</h3>
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {banner.description}
-                          </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={banner.image_url}
+                            alt={banner.title}
+                            className="w-24 h-16 object-cover rounded"
+                          />
+                          <div>
+                            <h3 className="text-lg font-medium">{banner.title}</h3>
+                            <p className="text-gray-600 text-sm">{banner.description}</p>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
@@ -288,13 +301,13 @@ const GerenciarBanners = () => {
                               setEditingBanner(banner);
                               setIsModalOpen(true);
                             }}
-                            className="p-2 text-gray-600 hover:text-gray-800"
+                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
                           >
                             Editar
                           </button>
                           <button
                             onClick={() => handleDeleteBanner(banner.id)}
-                            className="p-2 text-red-600 hover:text-red-800"
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
                           >
                             Excluir
                           </button>
