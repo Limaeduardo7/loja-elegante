@@ -373,6 +373,10 @@ const AdminPanel = () => {
     }
   };
 
+  useEffect(() => {
+    console.log('Renderizando ações rápidas');
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -487,27 +491,48 @@ const AdminPanel = () => {
       {/* Ações Rápidas */}
       <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 mb-10">
         <h2 className="text-lg font-medium mb-4 text-gray-800">Ações Rápidas</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button 
-            onClick={() => navigate('/admin/produtos/novo')}
+            onClick={() => {
+              console.log('Clicou em Novo Produto');
+              navigate('/admin/produtos/novo');
+            }}
             className="py-4 px-8 bg-rose-300 text-white rounded-md hover:bg-rose-400 transition-colors"
           >
             Novo Produto
           </button>
           <button 
-            onClick={() => navigate('/admin/categorias')}
+            onClick={() => {
+              console.log('Clicou em Gerenciar Categorias');
+              navigate('/admin/categorias');
+            }}
             className="py-4 px-8 bg-rose-300 text-white rounded-md hover:bg-rose-400 transition-colors"
           >
             Gerenciar Categorias
           </button>
           <button 
-            onClick={() => navigate('/admin/promocoes')}
+            onClick={() => {
+              console.log('Clicou em Gerenciar Promoções');
+              navigate('/admin/promocoes');
+            }}
             className="py-4 px-8 bg-rose-300 text-white rounded-md hover:bg-rose-400 transition-colors"
           >
             Gerenciar Promoções
           </button>
           <button 
-            onClick={() => navigate('/admin/configuracoes')}
+            onClick={() => {
+              console.log('Clicou em Gerenciar Banners');
+              navigate('/admin/banners');
+            }}
+            className="py-4 px-8 bg-rose-300 text-white rounded-md hover:bg-rose-400 transition-colors"
+          >
+            Gerenciar Banners
+          </button>
+          <button 
+            onClick={() => {
+              console.log('Clicou em Configurações da Loja');
+              navigate('/admin/configuracoes');
+            }}
             className="py-4 px-8 bg-rose-300 text-white rounded-md hover:bg-rose-400 transition-colors"
           >
             Configurações da Loja

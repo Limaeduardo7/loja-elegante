@@ -27,13 +27,6 @@
     Access-Control-Allow-Methods = "GET,POST,OPTIONS"
     Access-Control-Allow-Headers = "X-Requested-With,Content-Type,Accept,Origin"
 
-# Configuração para API functions
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
-
 # Configuração para SPA
 [[redirects]]
   from = "/*"
@@ -45,6 +38,20 @@
   from = "/*"
   to = "/fallback.html"
   status = 404
+
+# Configuração específica para a função de teste PIX
+[[redirects]]
+  from = "/api/test-pix"
+  to = "/.netlify/functions/pagarme/test-pix"
+  status = 200
+  force = true
+
+# Configuração para o webhook do Pagar.me
+[[redirects]]
+  from = "/webhook/pagarme"
+  to = "/.netlify/functions/pagarme/webhook"
+  status = 200
+  force = true
 
 # Definição de funções serverless
 [functions]

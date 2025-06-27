@@ -75,7 +75,7 @@ const Contact = () => {
         {/* Botões de ação rápida */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
           <a 
-            href="https://wa.me/5511913453001?text=Olá!%20Gostaria%20de%20fazer%20uma%20compra." 
+            href="https://wa.me/5511990012305?text=Olá!%20Gostaria%20de%20fazer%20uma%20compra." 
             target="_blank" 
             rel="noopener noreferrer"
             className="bg-black text-white py-4 px-6 rounded-md flex items-center justify-center hover:bg-gray-800 transition-colors duration-300"
@@ -120,8 +120,7 @@ const Contact = () => {
                   <div className="text-left">
                     <h3 className="font-medium text-gray-900 mb-2 text-lg">Telefone</h3>
                     <p className="text-gray-600 font-light leading-relaxed">
-                      <a href="tel:+5511992698485" className="hover:text-champagne-500 transition-colors">Contato: (11) 99269-8485</a><br />
-                      <a href="tel:+5511913453001" className="hover:text-champagne-500 transition-colors">WhatsApp: (11) 91345-3001</a>
+                      <a href="tel:+5511990012305" className="hover:text-champagne-500 transition-colors">WhatsApp: (11) 99001-2305</a>
                     </p>
                   </div>
                 </div>

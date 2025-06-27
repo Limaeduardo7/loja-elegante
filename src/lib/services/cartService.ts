@@ -202,17 +202,32 @@ export async function addToCart(
     }
 
     // Verificar se o item já existe no carrinho
-    const { data: existingItem, error: existingError } = await supabase
+    const { data: existingItems, error: existingError } = await supabase
       .from('cart_items')
       .select('id, quantity')
       .eq('cart_id', cartId)
       .eq('product_id', productId)
-      .is('color_size_id', colorSizeId ? colorSizeId : null)
-      .maybeSingle();
+      .is('color_size_id', colorSizeId ? colorSizeId : null);
 
     if (existingError) throw existingError;
 
-    if (existingItem) {
+    if (existingItems && existingItems.length > 0) {
+      // Pode haver múltiplos itens - vamos trabalhar com o primeiro e remover os duplicados
+      const existingItem = existingItems[0];
+      
+      // Se houver mais de um item, remover os duplicados exceto o primeiro
+      if (existingItems.length > 1) {
+        console.warn(`Encontrados ${existingItems.length} itens duplicados no carrinho. Mantendo apenas o primeiro.`);
+        
+        // Remover todos os itens duplicados exceto o primeiro
+        for (let i = 1; i < existingItems.length; i++) {
+          await supabase
+            .from('cart_items')
+            .delete()
+            .eq('id', existingItems[i].id);
+        }
+      }
+      
       // Atualizar quantidade do item existente
       const newQuantity = existingItem.quantity + quantity;
       

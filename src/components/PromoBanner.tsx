@@ -1,31 +1,154 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCategories } from '../lib/services/categoryService';
 import { Category } from '../types/product';
+import { CreditCard, Truck, Percent, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const PromoCards = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slideInterval = useRef<number | null>(null);
+  
+  const promoItems = [
+    {
+      id: 1,
+      title: 'GANHE 5% OFF NO PIX',
+      subtitle: 'PAGAMENTO À VISTA',
+      description: 'EM TODO SITE',
+      icon: <Percent className="w-8 h-8 md:w-6 md:h-6 text-champagne-500" strokeWidth={1.5} />
+    },
+    {
+      id: 2,
+      title: 'FRETE GRÁTIS',
+      subtitle: 'ACIMA DE R$300,00',
+      description: 'PARA TODO BRASIL',
+      icon: <Truck className="w-8 h-8 md:w-6 md:h-6 text-champagne-500" strokeWidth={1.5} />
+    },
+    {
+      id: 3,
+      title: 'PARCELAMENTO EM ATÉ 6X',
+      subtitle: 'SEM JUROS',
+      description: 'ACIMA DE R$500,00',
+      icon: <CreditCard className="w-8 h-8 md:w-6 md:h-6 text-champagne-500" strokeWidth={1.5} />
+    }
+  ];
+  
+  const startSlideTimer = () => {
+    stopSlideTimer();
+    slideInterval.current = window.setInterval(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % promoItems.length);
+    }, 4000);
+  };
+  
+  const stopSlideTimer = () => {
+    if (slideInterval.current) {
+      clearInterval(slideInterval.current);
+    }
+  };
+  
+  useEffect(() => {
+    // Iniciar o timer apenas se a tela for menor que 768px (mobile)
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        startSlideTimer();
+      } else {
+        stopSlideTimer();
+      }
+    };
+    
+    // Verificar o tamanho inicial
+    handleResize();
+    
+    // Adicionar listener para mudanças de tamanho
+    window.addEventListener('resize', handleResize);
+    
+    // Limpar listener e timer
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      stopSlideTimer();
+    };
+  }, []);
+  
+  const goToPrevSlide = () => {
+    setCurrentSlide((prevSlide) => (prevSlide - 1 + promoItems.length) % promoItems.length);
+    startSlideTimer();
+  };
+  
+  const goToNextSlide = () => {
+    setCurrentSlide((prevSlide) => (prevSlide + 1) % promoItems.length);
+    startSlideTimer();
+  };
+  
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    startSlideTimer();
+  };
+
+  // Função para renderizar um card de benefício
+  const renderPromoCard = (item: typeof promoItems[0]) => (
+    <div className="flex flex-col items-center justify-center h-full w-full">
+      <div className="bg-white p-5 md:p-3 rounded-full mb-8 md:mb-6 shadow-sm border border-gray-50 inline-flex">
+        {item.icon}
+      </div>
+      <div className="text-center">
+        <h3 className="font-light text-lg md:text-sm lg:text-sm mb-3 md:mb-2 text-gray-800 tracking-wide">{item.title}</h3>
+        <p className="text-gray-500 mb-2 text-xs md:text-[10px] lg:text-xs tracking-wider uppercase">{item.subtitle}</p>
+        <p className="text-champagne-600 font-medium text-base md:text-xs lg:text-xs mt-2 md:mt-1">{item.description}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="container-custom mb-14 px-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-        {/* Card 1 */}
-        <div className="bg-white text-gray-800 p-6 flex flex-col justify-center items-center text-center border-b md:border-b-0 md:border-r border-gray-200 shadow-sm">
-          <h3 className="font-medium text-lg mb-2">GANHE 5% OFF NO PIX</h3>
-          <p className="text-gray-600 mb-1">PAGAMENTO À VISTA</p>
-          <p className="text-champagne-600 font-semibold text-xl">EM TODO SITE</p>
+    <div className="container mx-auto mb-10 md:mb-8 mt-4 md:mt-6 px-4 max-w-7xl">
+      <div className="relative bg-gray-50 rounded-xl shadow-sm py-10 md:py-8 px-4 md:px-6 border border-gray-100 md:h-48 mt-6">
+        {/* Título da seção */}
+        <div className="absolute -top-4 md:-top-3.5 left-1/2 transform -translate-x-1/2 bg-white px-5 md:px-6 py-2 md:py-1.5 rounded-full shadow-sm border border-gray-100">
+          <h2 className="text-xs md:text-xs font-light tracking-widest text-gray-500 whitespace-nowrap">BENEFÍCIOS</h2>
         </div>
         
-        {/* Card 2 */}
-        <div className="bg-gray-100 text-gray-800 p-6 flex flex-col justify-center items-center text-center border-b md:border-b-0 md:border-r border-gray-200 shadow-sm">
-          <h3 className="font-medium text-lg mb-2">FRETE GRÁTIS</h3>
-          <p className="text-gray-600 mb-1">ACIMA DE R$300,00</p>
-          <p className="text-champagne-600 font-semibold">PARA TODO BRASIL</p>
+        {/* Desktop - Todos os cards visíveis */}
+        <div className="hidden md:grid md:grid-cols-3 md:gap-4 h-full w-full">
+          {promoItems.map((item, index) => (
+            <div 
+              key={item.id} 
+              className={`h-full flex items-center justify-center ${
+                index === 1 ? 'border-l border-r border-gray-200' : ''
+              }`}
+            >
+              {renderPromoCard(item)}
+            </div>
+          ))}
         </div>
         
-        {/* Card 3 */}
-        <div className="bg-white text-gray-800 p-6 flex flex-col justify-center items-center text-center shadow-sm">
-          <h3 className="font-medium text-lg mb-2">PARCELAMENTO EM ATÉ 6X</h3>
-          <p className="text-gray-600 mb-1">SEM JUROS</p>
-          <p className="text-champagne-600 font-semibold">ACIMA DE R$500,00</p>
+        {/* Mobile - Carrossel */}
+        <div className="md:hidden relative overflow-hidden min-h-[240px] pb-12">
+          {promoItems.map((item, index) => (
+            <div
+              key={item.id}
+              className={`absolute inset-0 w-full h-full transition-all duration-700 ease-in-out ${
+                index === currentSlide ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 translate-x-full -z-10'
+              }`}
+            >
+              <div className="h-full flex flex-col items-center justify-center">
+                {renderPromoCard(item)}
+              </div>
+            </div>
+          ))}
+          
+          {/* Indicadores - apenas mobile */}
+          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 z-20">
+            {promoItems.map((_, index) => (
+              <button
+                key={index}
+                className={`transition-all duration-300 ${
+                  index === currentSlide 
+                    ? 'w-6 h-2 bg-champagne-500 rounded-full' 
+                    : 'w-2 h-2 bg-gray-300 rounded-full'
+                }`}
+                onClick={() => goToSlide(index)}
+                aria-label={`Ir para slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

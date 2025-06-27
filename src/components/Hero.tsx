@@ -1,45 +1,38 @@
 import { useEffect, useRef, useState, TouchEvent } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const sliderItems = [
-  {
-    id: 1,
-    title: 'Moda Atemporal, Sofisticada e Moderna',
-    description: 'Peças leves e elegantes para os dias mais frios',
-    image: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1374',
-    btnText: 'Garanta seu Look Agora!',
-    btnLink: '/colecao'
-  },
-  {
-    id: 2,
-    title: 'Moda Atemporal, Sofisticada e Moderna',
-    description: 'Complete seu look com nossas peças selecionadas',
-    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1470',
-    btnText: 'Nova coleção disponível!',
-    btnLink: '/colecao?categoria=acessorios'
-  },
-  {
-    id: 3,
-    title: 'Moda Atemporal, Sofisticada e Moderna',
-    description: 'Descubra as peças que serão tendência nesta estação',
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1470',
-    btnText: 'Nova coleção disponível!',
-    btnLink: '/colecao?novidades=true'
-  }
-];
+import { getActiveBanners, HeroBanner } from '../lib/services/bannerService';
 
 const Hero = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [banners, setBanners] = useState<HeroBanner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const slideInterval = useRef<number | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const data = await getActiveBanners();
+        setBanners(data);
+      } catch (err) {
+        console.error('Erro ao carregar banners:', err);
+        setError('Erro ao carregar banners');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBanners();
+  }, []);
   
   const startSlideTimer = () => {
     stopSlideTimer();
     slideInterval.current = window.setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % sliderItems.length);
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % banners.length);
     }, 5000);
   };
   
@@ -50,17 +43,19 @@ const Hero = () => {
   };
   
   useEffect(() => {
-    startSlideTimer();
+    if (banners.length > 0) {
+      startSlideTimer();
+    }
     return () => stopSlideTimer();
-  }, []);
+  }, [banners]);
   
   const goToPrevSlide = () => {
-    setCurrentSlide((prevSlide) => (prevSlide - 1 + sliderItems.length) % sliderItems.length);
+    setCurrentSlide((prevSlide) => (prevSlide - 1 + banners.length) % banners.length);
     startSlideTimer();
   };
   
   const goToNextSlide = () => {
-    setCurrentSlide((prevSlide) => (prevSlide + 1) % sliderItems.length);
+    setCurrentSlide((prevSlide) => (prevSlide + 1) % banners.length);
     startSlideTimer();
   };
   
@@ -101,6 +96,26 @@ const Hero = () => {
     navigate(path);
   };
 
+  if (loading) {
+    return (
+      <div className="relative w-full h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-pulse text-champagne-500">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative w-full h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (banners.length === 0) {
+    return null;
+  }
+
   return (
     <div 
       className="relative w-full h-screen overflow-hidden hero-slider"
@@ -108,32 +123,32 @@ const Hero = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {sliderItems.map((item, index) => (
+      {banners.map((banner, index) => (
         <div
-          key={item.id}
+          key={banner.id}
           className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
             index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
           }`}
         >
           <div className="relative w-full h-full">
             <img
-              src={item.image}
-              alt={item.title}
+              src={banner.image_url}
+              alt={banner.title}
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
               <div className="text-center max-w-2xl px-4">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl text-white font-light mb-4 tracking-wider font-title">
-                  {item.title}
+                  {banner.title}
                 </h1>
                 <p className="text-xl text-white font-light mb-8 tracking-wide font-text">
-                  {item.description}
+                  {banner.description}
                 </p>
                 <button
-                  onClick={() => handleButtonClick(item.btnLink)}
+                  onClick={() => handleButtonClick(banner.button_link)}
                   className="inline-block bg-champagne-500 hover:bg-champagne-600 text-white px-8 py-4 font-medium tracking-wide rounded-full transition-all transform hover:scale-105 hover:shadow-lg"
                 >
-                  {item.btnText}
+                  {banner.button_text}
                 </button>
               </div>
             </div>
@@ -142,32 +157,36 @@ const Hero = () => {
       ))}
 
       {/* Controles de navegação - visíveis apenas em desktop */}
-      <button
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-25 hover:bg-opacity-50 rounded-full p-2 text-white transition-all hidden md:block"
-        onClick={goToPrevSlide}
-      >
-        <ChevronLeft size={24} />
-      </button>
-      <button
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-25 hover:bg-opacity-50 rounded-full p-2 text-white transition-all hidden md:block"
-        onClick={goToNextSlide}
-      >
-        <ChevronRight size={24} />
-      </button>
-
-      {/* Indicadores de slide */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
-        {sliderItems.map((_, index) => (
+      {banners.length > 1 && (
+        <>
           <button
-            key={index}
-            className={`w-3 h-3 rounded-full transition-all ${
-              index === currentSlide ? 'bg-white scale-110' : 'bg-white bg-opacity-50'
-            }`}
-            onClick={() => goToSlide(index)}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-25 hover:bg-opacity-50 rounded-full p-2 text-white transition-all hidden md:block"
+            onClick={goToPrevSlide}
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <button
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-25 hover:bg-opacity-50 rounded-full p-2 text-white transition-all hidden md:block"
+            onClick={goToNextSlide}
+          >
+            <ChevronRight size={24} />
+          </button>
+
+          {/* Indicadores de slide */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  index === currentSlide ? 'bg-white scale-110' : 'bg-white bg-opacity-50'
+                }`}
+                onClick={() => goToSlide(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

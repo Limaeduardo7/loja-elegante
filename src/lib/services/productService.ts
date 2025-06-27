@@ -11,6 +11,7 @@ let productCache: Record<string, { data: any; timestamp: number }> = {};
 export async function getProducts({
   page = 1,
   categoryId = null,
+  categoryIds = null,
   search = '',
   isFeatured = false,
   orderBy = 'created_at',
@@ -18,15 +19,16 @@ export async function getProducts({
 }: {
   page?: number;
   categoryId?: string | null;
+  categoryIds?: string[] | null;
   search?: string;
   isFeatured?: boolean;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
 }) {
   // Cache key baseado nos parâmetros da consulta
-  const cacheKey = `products_${page}_${categoryId}_${search}_${isFeatured}_${orderBy}_${orderDirection}`;
+  const cacheKey = `products_${page}_${categoryId}_${categoryIds?.join(',')}_${search}_${isFeatured}_${orderBy}_${orderDirection}`;
   
-  console.log('[getProducts] Parâmetros de busca:', { page, categoryId, search, isFeatured, orderBy, orderDirection });
+  console.log('[getProducts] Parâmetros de busca:', { page, categoryId, categoryIds, search, isFeatured, orderBy, orderDirection });
   
   // Verificar se temos uma versão em cache válida
   const cachedData = productCache[cacheKey];
@@ -48,8 +50,11 @@ export async function getProducts({
       .eq('is_active', true);
 
     // Aplicar filtros se fornecidos
-    if (categoryId) {
-      console.log('[getProducts] Aplicando filtro de categoria:', categoryId);
+    if (categoryIds && categoryIds.length > 0) {
+      console.log('[getProducts] Aplicando filtro de múltiplas categorias:', categoryIds);
+      query = query.in('category_id', categoryIds);
+    } else if (categoryId) {
+      console.log('[getProducts] Aplicando filtro de categoria única:', categoryId);
       query = query.eq('category_id', categoryId);
     }
 

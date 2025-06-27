@@ -1,0 +1,6 @@
+@echo off
+echo Iniciando servidor de desenvolvimento com variaveis de ambiente...
+echo.
+echo Verificando se o servidor Netlify esta funcionando...
+
+npm start

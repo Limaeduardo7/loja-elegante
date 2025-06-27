@@ -5,8 +5,8 @@ const WhatsAppButton = () => {
   const [isVisible, setIsVisible] = useState(false);
   
   // Número do WhatsApp (substitua pelo número desejado)
-  const whatsappNumber = '5511913453001';
-  const whatsappMessage = 'Olá! Estou interessado(a) nos produtos da Loja Elegante e gostaria de mais informações.';
+  const whatsappNumber = '5511990012305';
+  const whatsappMessage = 'Olá! Gostaria de mais informações.';
   
   // URL para abrir o WhatsApp com mensagem pré-definida
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;

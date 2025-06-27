@@ -427,14 +427,8 @@ const Cart = () => {
                   
                   <div className="mt-4 text-center">
                     <p className="text-gray-500 text-xs">
-                      Pagamentos seguros processados por Mercado Pago.
+                      Pagamentos seguros processados pelo Pagar.me.
                     </p>
-                    <div className="flex justify-center space-x-2 mt-3">
-                      <div className="w-8 h-5 bg-gray-200 rounded"></div>
-                      <div className="w-8 h-5 bg-gray-200 rounded"></div>
-                      <div className="w-8 h-5 bg-gray-200 rounded"></div>
-                      <div className="w-8 h-5 bg-gray-200 rounded"></div>
-                    </div>
                   </div>
                 </div>
               </div>

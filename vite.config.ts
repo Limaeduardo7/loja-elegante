@@ -7,6 +7,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     open: true,
+    proxy: {
+      '/.netlify/functions': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   resolve: {
     alias: {

@@ -174,6 +174,8 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
   const handlePaymentMethodChange = (method: 'credit_card' | 'pix' | 'boleto') => {
     setPaymentMethod(method);
     setError(null);
+    // Limpar o resultado do pagamento anterior ao trocar o método
+    setPaymentResult(null);
   };
   
   // Manipulador para mudança nos campos do cartão
@@ -207,8 +209,62 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
       );
     }
     
-    // Mostrar QR Code e instruções após processamento
-    const pixData = paymentResult.charges[0]?.last_transaction?.qr_code || {};
+    // Log completo da resposta para diagnóstico
+    console.log('=== DIAGNÓSTICO PIX ===');
+    console.log('Objeto completo:', paymentResult);
+    console.log('Charges:', paymentResult.charges);
+    console.log('Primeira charge:', paymentResult.charges?.[0]);
+    console.log('Last transaction:', paymentResult.charges?.[0]?.last_transaction);
+    console.log('QR Code data:', paymentResult.charges?.[0]?.last_transaction?.qr_code);
+    console.log('======================');
+    
+    // Extração direta do código QR dos dados brutos
+    // A estrutura real pode variar, então buscamos em diferentes possíveis caminhos
+    
+    // Verificar se temos a estrutura _pixData criada pelo serviço
+    let pixData = paymentResult._pixData || {
+      text: null,
+      url: null,
+      found: false
+    };
+    
+    // Se o _pixData.found é false, mas temos qr_code na resposta da charge, pegamos de lá
+    if (!pixData.found && paymentResult.charges && paymentResult.charges[0]?.last_transaction) {
+      const lastTransaction = paymentResult.charges[0].last_transaction;
+      
+      if (lastTransaction.qr_code) {
+        // Pode ser um objeto ou uma string
+        if (typeof lastTransaction.qr_code === 'object') {
+          // Formato objeto
+          pixData.text = lastTransaction.qr_code.text;
+          pixData.url = lastTransaction.qr_code.url;
+          pixData.found = true;
+        } else if (typeof lastTransaction.qr_code === 'string') {
+          // Formato string
+          pixData.text = lastTransaction.qr_code;
+          pixData.found = true;
+          
+          // Verificar se temos URL em outra propriedade
+          if (lastTransaction.qr_code_url) {
+            pixData.url = lastTransaction.qr_code_url;
+          }
+        }
+      } else if (lastTransaction.qr_code_url) {
+        // Formato observado na resposta real: qr_code_url sem qr_code
+        pixData.url = lastTransaction.qr_code_url;
+        pixData.found = true;
+      }
+    }
+    
+    // Usar os valores extraídos
+    const qrCodeText = pixData.text;
+    const qrCodeUrl = pixData.url;
+    const hasQrCodeData = pixData.found;
+    
+    // Alerta se não encontramos os dados do QR Code
+    if (!hasQrCodeData) {
+      console.error('ALERTA: Dados do QR Code PIX não encontrados na resposta');
+    }
     
     return (
       <div className="bg-green-50 p-6 rounded-lg">
@@ -220,28 +276,45 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
           </p>
         </div>
         
-        {pixData.qr_code_url && (
+        {!hasQrCodeData && (
+          <div className="text-center p-4 mb-4 bg-yellow-100 border border-yellow-200 rounded-lg">
+            <AlertCircle className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+            <p className="text-sm text-yellow-700 mb-2">
+              Não foi possível gerar o QR Code PIX.
+            </p>
+            <p className="text-xs text-yellow-600">
+              Por favor, tente novamente ou escolha outra forma de pagamento.
+            </p>
+          </div>
+        )}
+        
+        {qrCodeUrl ? (
           <div className="flex justify-center mb-4">
             <img 
-              src={pixData.qr_code_url} 
+              src={qrCodeUrl} 
               alt="QR Code PIX" 
               className="w-48 h-48 border p-2 rounded-lg"
             />
           </div>
+        ) : (
+          <div className="text-center p-3 bg-yellow-50 border border-yellow-100 rounded-md mb-4">
+            <AlertCircle className="h-5 w-5 text-yellow-500 mx-auto mb-2" />
+            <p className="text-sm text-yellow-700">QR Code não disponível. Use o código abaixo para pagar.</p>
+          </div>
         )}
         
-        {pixData.text && (
+        {qrCodeText ? (
           <div className="mb-4">
             <p className="text-sm font-medium mb-1">Código PIX Copia e Cola:</p>
             <div className="relative">
               <textarea 
                 readOnly 
-                value={pixData.text}
+                value={qrCodeText}
                 className="w-full p-3 bg-white border rounded-md text-xs h-24"
               />
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(pixData.text);
+                  navigator.clipboard.writeText(qrCodeText);
                   alert('Código PIX copiado!');
                 }}
                 className="absolute right-2 top-2 text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
@@ -250,22 +323,36 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
               </button>
             </div>
           </div>
+        ) : (
+          <div className="text-center p-3 bg-yellow-50 border border-yellow-100 rounded-md mb-4">
+            <AlertCircle className="h-5 w-5 text-yellow-500 mx-auto mb-2" />
+            <p className="text-sm text-yellow-700">Código PIX não disponível. Tente gerar novamente.</p>
+          </div>
         )}
         
-        <div className="bg-white p-3 rounded-md border border-green-200 mb-4">
-          <h4 className="font-medium text-sm mb-1">Instruções:</h4>
-          <ol className="text-xs text-gray-700 list-decimal pl-4 space-y-1">
-            <li>Abra o aplicativo do seu banco</li>
-            <li>Acesse a área PIX ou escaneie o QR Code</li>
-            <li>Confirme os dados e finalize o pagamento</li>
-            <li>Guarde o comprovante</li>
-          </ol>
+        <div className="bg-white p-4 rounded-md border mt-4">
+          <h4 className="text-sm font-medium mb-2">Instruções:</h4>
+          <ul className="text-xs text-gray-600 space-y-1">
+            <li>1. Abra o aplicativo do seu banco</li>
+            <li>2. Acesse a área PIX ou escaneie o QR Code</li>
+            <li>3. Confirme os dados e finalize o pagamento</li>
+            <li>4. Guarde o comprovante</li>
+          </ul>
+          <p className="text-xs text-gray-500 mt-3">
+            O pagamento pode levar alguns instantes para ser confirmado. 
+            Assim que confirmado, você receberá uma notificação.
+          </p>
         </div>
         
-        <p className="text-xs text-gray-500 text-center">
-          O pagamento pode levar alguns instantes para ser confirmado.
-          Assim que confirmado, você receberá uma notificação.
-        </p>
+        <div className="mt-4">
+          <Button 
+            onClick={() => handlePayment()}
+            disabled={loading}
+            className="w-full bg-green-500 hover:bg-green-600 text-white"
+          >
+            {loading ? 'Gerando PIX...' : 'Gerar novo PIX'}
+          </Button>
+        </div>
       </div>
     );
   };
@@ -291,8 +378,24 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
       );
     }
     
+    // Log completo da resposta para diagnóstico
+    console.log('=== DIAGNÓSTICO BOLETO ===');
+    console.log('Objeto completo:', paymentResult);
+    console.log('Charges:', paymentResult.charges);
+    console.log('Primeira charge:', paymentResult.charges?.[0]);
+    console.log('Last transaction:', paymentResult.charges?.[0]?.last_transaction);
+    console.log('======================');
+    
     // Mostrar boleto e instruções após processamento
-    const boletoData = paymentResult.charges[0]?.last_transaction || {};
+    const boletoData = paymentResult.charges?.[0]?.last_transaction || {};
+    
+    // Extrair a linha digitável (código numérico) e a URL do boleto
+    const boletoUrl = boletoData.url || '';
+    const barcodeImage = boletoData.barcode || '';
+    const linhaDigitavel = boletoData.line || boletoData.digitable_line || '';
+    
+    // Verificar se temos dados do boleto
+    const hasBoletoData = !!boletoUrl;
     
     return (
       <div className="bg-yellow-50 p-6 rounded-lg">
@@ -304,10 +407,22 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
           </p>
         </div>
         
-        {boletoData.url && (
+        {!hasBoletoData && (
+          <div className="text-center p-4 mb-4 bg-yellow-100 border border-yellow-200 rounded-lg">
+            <AlertCircle className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+            <p className="text-sm text-yellow-700 mb-2">
+              Não foi possível gerar o boleto.
+            </p>
+            <p className="text-xs text-yellow-600">
+              Por favor, tente novamente ou escolha outra forma de pagamento.
+            </p>
+          </div>
+        )}
+        
+        {boletoUrl && (
           <div className="mb-4">
             <a 
-              href={boletoData.url}
+              href={boletoUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full bg-white border border-yellow-300 text-center p-3 rounded-md hover:bg-yellow-100 transition-colors"
@@ -317,18 +432,33 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
           </div>
         )}
         
-        {boletoData.barcode && (
+        {/* Imagem do código de barras */}
+        {barcodeImage && barcodeImage.includes('api.pagar.me') && (
           <div className="mb-4">
-            <p className="text-sm font-medium mb-1">Código de Barras:</p>
+            <p className="text-sm font-medium mb-2">Código de Barras:</p>
+            <div className="bg-white border rounded-lg p-4 flex justify-center">
+              <img 
+                src={barcodeImage}
+                alt="Código de barras do boleto"
+                className="max-w-full h-auto"
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Linha digitável (código numérico) */}
+        {linhaDigitavel ? (
+          <div className="mb-4">
+            <p className="text-sm font-medium mb-1">Linha Digitável:</p>
             <div className="relative">
               <input 
                 readOnly 
-                value={boletoData.barcode}
+                value={linhaDigitavel}
                 className="w-full p-3 bg-white border rounded-md text-xs"
               />
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(boletoData.barcode);
+                  navigator.clipboard.writeText(linhaDigitavel);
                   alert('Código copiado!');
                 }}
                 className="absolute right-2 top-2 text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
@@ -337,7 +467,27 @@ const PagarmeCheckout: React.FC<PagarmeCheckoutProps> = ({
               </button>
             </div>
           </div>
-        )}
+        ) : barcodeImage && !barcodeImage.includes('api.pagar.me') ? (
+          <div className="mb-4">
+            <p className="text-sm font-medium mb-1">Código de Barras:</p>
+            <div className="relative">
+              <input 
+                readOnly 
+                value={barcodeImage}
+                className="w-full p-3 bg-white border rounded-md text-xs"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(barcodeImage);
+                  alert('Código copiado!');
+                }}
+                className="absolute right-2 top-2 text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+              >
+                Copiar
+              </button>
+            </div>
+          </div>
+        ) : null}
         
         <div className="bg-white p-3 rounded-md border border-yellow-200 mb-4">
           <h4 className="font-medium text-sm mb-1">Instruções:</h4>

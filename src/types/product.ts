@@ -14,9 +14,12 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
-  parent_id?: string;
   image_url?: string;
   is_active: boolean;
+  parent_id?: string | null;
+  subcategories?: Category[]; // Array de subcategorias
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Tipo para cor de produto
@@ -62,37 +65,24 @@ export interface ProductReview {
 export interface Product {
   id: string;
   name: string;
-  slug: string;
-  sku?: string;
   description?: string;
-  features?: string | string[];
   price: number;
   discount_percent?: number;
-  category_id: string;
-  material?: string;
-  weight?: number;
-  is_featured: boolean;
-  is_active: boolean;
-  in_stock: boolean;
-  created_at: string;
-  updated_at: string;
-  
-  // Campos processados (não diretamente do banco)
   mainImage?: string;
-  finalPrice?: number;
-  isNew?: boolean;
-  shipsToday?: boolean;
-  productStory?: string;
-  tags?: string[];
-  stock?: number;
-  discount?: number;
+  images?: ProductImage[];
+  category: Category;
+  subcategory?: Category;
+  in_stock: boolean;
+  is_featured?: boolean;
+  features?: string[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Tipo de produto com detalhes completos
-export interface ProductWithDetails extends Product {
+export interface ProductWithDetails extends Omit<Product, 'category' | 'subcategory'> {
   category?: Category;
-  images: ProductImage[];
-  modelImages?: string[]; // Imagens do produto no modelo
+  subcategory?: Category;
   colors?: ProductColor[];
   sizes?: ProductSize[];
   variants?: ColorSizeVariant[];

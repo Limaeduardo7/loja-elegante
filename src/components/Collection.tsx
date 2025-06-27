@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingBag, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getProducts, getCategories } from '../lib/services';
+import { getOrCreateCart, addToCart } from '../lib/services/cartService';
 import { Product, Category } from '../types/product';
 import { PromoCards } from './PromoBanner';
 
@@ -101,6 +102,14 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
 
       {/* Informações do produto */}
       <div className="p-4 bg-white">
+        {/* Categoria e Subcategoria */}
+        <div className="mb-1">
+          <span className="text-xs text-gray-500">
+            {product.category.name}
+            {product.subcategory && ` › ${product.subcategory.name}`}
+          </span>
+        </div>
+
         <h3 
           onClick={handleClick}
           className="text-gray-800 font-light text-md mb-1 hover:text-champagne-500 transition-colors font-title text-left"
@@ -112,11 +121,11 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
           <div className="flex items-center space-x-2">
             {discountedPrice ? (
               <>
-                <span className="text-champagne-600 font-medium">{discountedPrice}</span>
+                <span className="text-champagne-600 font-bold">{discountedPrice}</span>
                 <span className="text-gray-400 text-sm line-through">{formattedPrice}</span>
               </>
             ) : (
-              <span className="text-gray-800 font-medium">{formattedPrice}</span>
+              <span className="text-gray-800 font-bold">{formattedPrice}</span>
             )}
           </div>
           <p className="text-xs text-gray-500 mt-1 font-text text-left">
@@ -188,12 +197,10 @@ const Collection = () => {
         
         console.log('Filtros ativos:', hasActiveFilters, filters);
         
-        // Buscar produtos com filtros aplicados apenas se o usuário selecionou algum filtro
+        // Buscar produtos com filtros aplicados
         const { data: productsData, count, totalPages: pages, error: productsError } = await getProducts({
           page: currentPage,
-          // Aplicar filtro de categoria apenas se houver categorias selecionadas
-          categoryId: hasActiveFilters && filters.categories.length > 0 ? filters.categories[0] : null,
-          // Aplicar filtro de produtos em destaque apenas se o filtro 'Apenas Novidades' estiver ativo
+          categoryIds: hasActiveFilters && filters.categories.length > 0 ? filters.categories : null,
           isFeatured: hasActiveFilters && filters.onlyNew,
           orderBy: 'created_at',
           orderDirection: 'desc'
@@ -307,9 +314,29 @@ const Collection = () => {
   };
 
   // Adicionar ao carrinho (implementar integração com CartService)
-  const handleAddToCart = (productId: string) => {
-    alert(`Produto ${productId} adicionado ao carrinho!`);
-    // Aqui você pode integrar com o serviço de carrinho
+  const handleAddToCart = async (productId: string) => {
+    try {
+      // Obter ou criar o carrinho
+      const { cart, error: cartError } = await getOrCreateCart();
+      
+      if (cartError || !cart) {
+        throw new Error('Não foi possível acessar o carrinho de compras');
+      }
+      
+      // Adicionar item ao carrinho (quantidade padrão = 1)
+      const { success, error } = await addToCart(
+        cart.id,
+        productId,
+        1
+      );
+      
+      if (!success) {
+        throw new Error(error?.message || 'Não foi possível adicionar o item ao carrinho');
+      }
+      
+    } catch (error: any) {
+      console.error('Erro ao adicionar ao carrinho:', error);
+    }
   };
 
   // Componente de painel de filtros
@@ -319,15 +346,35 @@ const Collection = () => {
         <h3 className="text-lg font-medium mb-4">Categorias</h3>
         <div className="space-y-2">
           {categories.map(category => (
-            <label key={category.id} className="flex items-center">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-champagne-500 rounded focus:ring-champagne-500"
-                checked={filters.categories.includes(category.id)}
-                onChange={() => toggleCategory(category.id)}
-              />
-              <span className="ml-2 text-gray-700 font-light">{category.name}</span>
-            </label>
+            <div key={category.id} className="space-y-2">
+              {/* Categoria principal */}
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="form-checkbox h-4 w-4 text-champagne-500 rounded focus:ring-champagne-500"
+                  checked={filters.categories.includes(category.id)}
+                  onChange={() => toggleCategory(category.id)}
+                />
+                <span className="ml-2 text-gray-700 font-medium">{category.name}</span>
+              </label>
+              
+              {/* Subcategorias */}
+              {category.subcategories && category.subcategories.length > 0 && (
+                <div className="ml-6 space-y-2">
+                  {category.subcategories.map(subcategory => (
+                    <label key={subcategory.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-4 w-4 text-champagne-500 rounded focus:ring-champagne-500"
+                        checked={filters.categories.includes(subcategory.id)}
+                        onChange={() => toggleCategory(subcategory.id)}
+                      />
+                      <span className="ml-2 text-gray-700 font-light">{subcategory.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </div>
@@ -623,4 +670,4 @@ const Collection = () => {
   );
 };
 
-export default Collection; 
+export default Collection;

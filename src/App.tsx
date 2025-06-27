@@ -43,6 +43,9 @@ import {
 // Importar AdminPedidos diretamente para evitar problemas
 import AdminPedidos from './pages/admin/Pedidos';
 
+// Importar página de teste do PIX
+import TestPix from './pages/payment/TestPix';
+
 // Importar NovoEndereco de forma mais robusta
 import NovoEndereco from './pages/NovoEndereco';
 // Importar fallback em caso de falha
@@ -226,6 +229,9 @@ function App() {
               element={<Navigate to="/perfil" replace />} 
             />
             <Route path="/atualizar-senha" element={<Auth resetMode={true} />} />
+            
+            {/* Página de teste do PIX */}
+            <Route path="/teste-pix" element={<TestPix />} />
           </Routes>
         </main>
         <Footer />

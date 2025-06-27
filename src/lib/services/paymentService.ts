@@ -98,44 +98,43 @@ export async function processPayment(
     
     // Com base no método de pagamento, escolher o fluxo apropriado
     if (orderData.payment_method === 'credit_card' && orderData.card) {
-      // 2. Criar token do cartão
-      const cardToken = await pagarmeApiService.createCardToken({
-        number: orderData.card.number,
-        holder_name: orderData.card.holder_name,
-        exp_month: orderData.card.exp_month,
-        exp_year: orderData.card.exp_year,
-        cvv: orderData.card.cvv
-      });
-      console.log('Card token criado:', cardToken);
-      
-      // 3. Criar card_id (opcional)
-      const cardId = await pagarmeApiService.createCard(
-        customerId,
-        cardToken,
-        shippingAddress // Usando o mesmo endereço de envio como endereço de cobrança
-      );
-      console.log('Card ID criado:', cardId);
-      
-      // 4. Criar o pedido com o card_id
-      paymentResponse = await pagarmeApiService.createOrderWithCardId({
-        customer_id: customerId,
-        items: pagarmeItems,
-        payments: [
-          {
-            payment_method: 'credit_card',
-            credit_card: {
-              card_id: cardId,
-              installments: orderData.installments || 1,
-              statement_descriptor: 'LOJA ELEGANTE'
+      try {
+        // SOLUÇÃO ALTERNATIVA: Criar o pedido diretamente com os dados do cartão
+        // Isso elimina a necessidade do endpoint de tokens que está retornando 401
+        console.log('Usando fluxo alternativo para cartão de crédito (sem token)');
+        
+        paymentResponse = await pagarmeApiService.createOrderWithCard({
+          customer_id: customerId,
+          items: pagarmeItems,
+          payments: [
+            {
+              payment_method: 'credit_card',
+              credit_card: {
+                // Em vez de token, enviar dados do cartão diretamente
+                // Isso será processado pelo proxy serverless que já usa a chave secreta
+                installments: orderData.installments || 1,
+                statement_descriptor: 'LOJA ELEGANTE',
+                card: {
+                  number: orderData.card.number,
+                  holder_name: orderData.card.holder_name,
+                  exp_month: orderData.card.exp_month,
+                  exp_year: orderData.card.exp_year,
+                  cvv: orderData.card.cvv
+                },
+                billing_address: shippingAddress
+              }
             }
+          ],
+          shipping: {
+            amount: Math.round(orderData.shipping.cost * 100),
+            description: 'Frete',
+            address: shippingAddress
           }
-        ],
-        shipping: {
-          amount: Math.round(orderData.shipping.cost * 100),
-          description: 'Frete',
-          address: shippingAddress
-        }
-      });
+        });
+      } catch (cardError) {
+        console.error('Erro no fluxo alternativo de cartão:', cardError);
+        throw cardError;
+      }
     } else if (orderData.payment_method === 'pix') {
       // Criar pedido com PIX
       paymentResponse = await pagarmeApiService.createOrderWithPix({
@@ -155,6 +154,16 @@ export async function processPayment(
           address: shippingAddress
         }
       });
+      
+      // Logs específicos para depuração de PIX
+      console.log('Resposta PIX do Pagar.me completa:', JSON.stringify(paymentResponse));
+      console.log('Dados do QR Code PIX:', paymentResponse.charges?.[0]?.last_transaction?.qr_code);
+      console.log('Estrutura de charges:', paymentResponse.charges?.map((c: any) => ({
+        charge_id: c.id,
+        status: c.status,
+        has_qr_code: !!c.last_transaction?.qr_code,
+        qr_code_props: c.last_transaction?.qr_code ? Object.keys(c.last_transaction.qr_code) : null
+      })));
     } else if (orderData.payment_method === 'boleto') {
       // Criar pedido com Boleto
       const dueDate = new Date();
@@ -248,15 +257,15 @@ export async function processPaymentNotification(
   try {
     // Registrar a notificação
     try {
-      const { error: notificationError } = await supabase
+    const { error: notificationError } = await supabase
         .from('pagarme_notifications')
-        .insert({
+      .insert({
           transaction_id: payload.id,
           current_status: payload.data?.status || payload.type,
           old_status: payload.data?.old_status || null,
           raw_data: payload,
-          processed: false
-        });
+        processed: false
+      });
 
       if (notificationError) {
         console.error('Erro ao registrar notificação:', notificationError);
@@ -352,7 +361,7 @@ async function updateTransactionStatus(
 function calculateTotal(items: any[]): number {
   return items.reduce((total, item) => 
     total + (item.product.finalPrice * item.quantity), 0);
-}
+} 
 
 export default {
   processPayment,

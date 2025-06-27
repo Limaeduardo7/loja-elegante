@@ -112,19 +112,51 @@ const NovaCategoria = () => {
     }
   };
 
-  const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nome = e.target.value;
-    setCategoria({ ...categoria, nome });
-    // Gerar slug automaticamente a partir do nome
-    const slug = nome.toLowerCase()
-      .normalize('NFD') // Normaliza caracteres acentuados
-      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
-      .replace(/\s+/g, '-') // Substitui espaços por hífens
-      .replace(/-+/g, '-') // Remove múltiplos hífens consecutivos
+  const gerarSlugUnico = async (nomeBase: string): Promise<string> => {
+    // Gerar slug base
+    let slug = nomeBase.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
       .trim();
+
+    let slugFinal = slug;
+    let contador = 1;
+    let slugExiste = true;
+
+    // Verificar se o slug existe e adicionar número se necessário
+    while (slugExiste) {
+      const { data, error } = await supabase
+        .from('categorias')
+        .select('slug')
+        .eq('slug', slugFinal)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erro ao verificar slug:', error);
+        return slug; // Retorna o slug original em caso de erro
+      }
+
+      if (!data) {
+        slugExiste = false; // Slug está disponível
+      } else {
+        slugFinal = `${slug}-${contador}`; // Adiciona número ao slug
+        contador++;
+      }
+    }
+
+    return slugFinal;
+  };
+
+  const handleNomeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nome = e.target.value;
+    setCategoria(prev => ({ ...prev, nome }));
     
-    setCategoria(prev => ({ ...prev, slug }));
+    // Gerar slug único
+    const slugUnico = await gerarSlugUnico(nome);
+    setCategoria(prev => ({ ...prev, slug: slugUnico }));
   };
 
   const handleImagemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,10 +207,14 @@ const NovaCategoria = () => {
       if (imagemArquivo) {
         imagemUrl = await uploadImagem(imagemArquivo);
       }
+
+      // Verificar novamente o slug antes de salvar
+      const slugFinal = await gerarSlugUnico(categoria.nome);
       
       const categoriaNova = {
         ...categoria,
-        imagem_url: imagemUrl
+        imagem_url: imagemUrl,
+        slug: slugFinal
       };
       
       // Inserir categoria no banco
