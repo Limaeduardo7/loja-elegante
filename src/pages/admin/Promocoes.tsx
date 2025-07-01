@@ -6,14 +6,16 @@ import { toast } from 'react-hot-toast';
 
 interface Promocao {
   id: string;
-  nome: string;
-  descricao: string;
-  desconto: number;
-  data_inicio: string;
-  data_fim: string;
-  ativa: boolean;
-  produtos_ids: string[];
-  codigo: string;
+  name: string;
+  description: string | null;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  code: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const Promocoes = () => {
@@ -22,16 +24,17 @@ const Promocoes = () => {
   const [promocoes, setPromocoes] = useState<Promocao[]>([]);
   const [loading, setLoading] = useState(true);
   const [verificandoAdmin, setVerificandoAdmin] = useState(true);
-  const [modalNovaPromocaoAberto, setModalNovaPromocaoAberto] = useState(false);
-  const [novaPromocao, setNovaPromocao] = useState<Partial<Promocao>>({
-    nome: '',
-    descricao: '',
-    desconto: 10,
-    data_inicio: new Date().toISOString().split('T')[0],
-    data_fim: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    ativa: true,
-    produtos_ids: [],
-    codigo: ''
+  const [modalAberto, setModalAberto] = useState(false);
+  const [promocaoEmEdicao, setPromocaoEmEdicao] = useState<Promocao | null>(null);
+  const [formData, setFormData] = useState<Partial<Promocao>>({
+    name: '',
+    description: '',
+    discount_type: 'percentage',
+    discount_value: 10,
+    start_date: new Date().toISOString(),
+    end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    is_active: true,
+    code: ''
   });
 
   useEffect(() => {
@@ -93,49 +96,41 @@ const Promocoes = () => {
   const buscarPromocoes = async () => {
     setLoading(true);
     try {
-      // Verificar se a tabela existe
-      const { data: tableInfo, error: tableError } = await supabase
+      const { data, error } = await supabase
         .from('promotions')
         .select('*')
-        .limit(1);
+        .order('start_date', { ascending: false });
       
-      if (tableError) {
-        console.error('Erro ao buscar promoções ou tabela não existe:', tableError);
-        // Se a tabela não existir, criaremos dados mockados para desenvolvimento
+      if (error) {
+        console.error('Erro ao buscar promoções:', error);
+        // Se houver erro, usar dados mockados para desenvolvimento
         const promosMock: Promocao[] = [
           {
             id: '1',
-            nome: 'Verão 2024',
-            descricao: 'Desconto em toda coleção verão',
-            desconto: 15,
-            data_inicio: '2024-06-01',
-            data_fim: '2024-07-31',
-            ativa: true,
-            produtos_ids: [],
-            codigo: 'VERAO2024'
+            name: 'Verão 2024',
+            description: 'Desconto em toda coleção verão',
+            discount_type: 'percentage',
+            discount_value: 15,
+            start_date: '2024-06-01T00:00:00Z',
+            end_date: '2024-07-31T23:59:59Z',
+            is_active: true,
+            code: 'VERAO2024'
           },
           {
             id: '2',
-            nome: 'Black Friday',
-            descricao: 'Desconto especial na Black Friday',
-            desconto: 30,
-            data_inicio: '2024-11-25',
-            data_fim: '2024-11-30',
-            ativa: false,
-            produtos_ids: [],
-            codigo: 'BLACK30'
+            name: 'Black Friday',
+            description: 'Desconto especial na Black Friday',
+            discount_type: 'percentage',
+            discount_value: 30,
+            start_date: '2024-11-25T00:00:00Z',
+            end_date: '2024-11-30T23:59:59Z',
+            is_active: false,
+            code: 'BLACKFRIDAY'
           }
         ];
         setPromocoes(promosMock);
         return;
       }
-      
-      const { data, error } = await supabase
-        .from('promotions')
-        .select('*')
-        .order('data_inicio', { ascending: false });
-      
-      if (error) throw error;
       
       setPromocoes(data || []);
     } catch (error) {
@@ -146,26 +141,24 @@ const Promocoes = () => {
     }
   };
 
-  const atualizarStatusPromocao = async (id: string, ativa: boolean) => {
+  const atualizarStatusPromocao = async (id: string, is_active: boolean) => {
     try {
-      // Em produção, isso faria uma atualização real no banco
-      // Se a tabela não existir, apenas atualizamos o estado localmente
       const { error } = await supabase
         .from('promotions')
-        .update({ ativa })
+        .update({ is_active })
         .eq('id', id);
       
       if (error) {
-        console.error('Erro ao atualizar promoção no banco:', error);
-        // Prosseguir apenas com atualização local para fins de demonstração
+        console.error('Erro ao atualizar promoção:', error);
+        toast.error('Erro ao atualizar status da promoção.');
+        return;
       }
       
-      // Atualizar localmente
       setPromocoes(promocoes.map(promo => 
-        promo.id === id ? { ...promo, ativa } : promo
+        promo.id === id ? { ...promo, is_active } : promo
       ));
       
-      toast.success(`Promoção ${ativa ? 'ativada' : 'desativada'} com sucesso!`);
+      toast.success(`Promoção ${is_active ? 'ativada' : 'desativada'} com sucesso!`);
     } catch (error) {
       console.error('Erro ao atualizar status da promoção:', error);
       toast.error('Erro ao atualizar promoção.');
@@ -181,57 +174,150 @@ const Promocoes = () => {
     return result;
   };
 
-  const handleNovaPromocao = () => {
-    setNovaPromocao({
-      nome: '',
-      descricao: '',
-      desconto: 10,
-      data_inicio: new Date().toISOString().split('T')[0],
-      data_fim: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      ativa: true,
-      produtos_ids: [],
-      codigo: gerarCodigoAleatorio()
+  const handleEditarPromocao = (promocao: Promocao) => {
+    setPromocaoEmEdicao(promocao);
+    setFormData({
+      name: promocao.name,
+      description: promocao.description,
+      discount_type: promocao.discount_type,
+      discount_value: promocao.discount_value,
+      start_date: promocao.start_date,
+      end_date: promocao.end_date,
+      is_active: promocao.is_active,
+      code: promocao.code
     });
-    setModalNovaPromocaoAberto(true);
+    setModalAberto(true);
   };
 
-  const handleSalvarPromocao = async () => {
-    if (!novaPromocao.nome || !novaPromocao.codigo) {
-      toast.error('Preencha os campos obrigatórios');
+  const handleSalvar = async () => {
+    console.log('Iniciando handleSalvar');
+    console.log('Dados do formulário:', formData);
+    
+    try {
+      // Validações básicas
+      if (!formData.name?.trim()) {
+        toast.error('O nome da promoção é obrigatório');
+        return;
+      }
+
+      if (!formData.code?.trim()) {
+        toast.error('O código da promoção é obrigatório');
       return;
     }
     
-    try {
-      // Em produção, salvaria no banco
-      // Para fins de demonstração, apenas adicionamos ao estado
-      const novaPromo: Promocao = {
-        id: Date.now().toString(),
-        nome: novaPromocao.nome || '',
-        descricao: novaPromocao.descricao || '',
-        desconto: novaPromocao.desconto || 0,
-        data_inicio: novaPromocao.data_inicio || new Date().toISOString().split('T')[0],
-        data_fim: novaPromocao.data_fim || '',
-        ativa: novaPromocao.ativa || false,
-        produtos_ids: novaPromocao.produtos_ids || [],
-        codigo: novaPromocao.codigo || ''
-      };
+      // Validar datas
+      const startDate = new Date(formData.start_date || '');
+      const endDate = new Date(formData.end_date || '');
       
-      // Tentar salvar no banco se a tabela existir
-      const { error } = await supabase
+      console.log('Datas:', { startDate, endDate });
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        toast.error('Datas inválidas');
+        return;
+      }
+
+      if (endDate < startDate) {
+        toast.error('A data de término deve ser posterior à data de início');
+        return;
+      }
+
+      // Validar valor do desconto
+      if (formData.discount_type === 'percentage' && (formData.discount_value || 0) > 100) {
+        toast.error('Desconto em porcentagem não pode ser maior que 100%');
+        return;
+      }
+
+      if (formData.discount_value === undefined || formData.discount_value < 0) {
+        toast.error('Valor do desconto inválido');
+        return;
+      }
+
+      const dadosAtualizacao = {
+        name: formData.name.trim(),
+        description: formData.description?.trim() || null,
+        discount_type: formData.discount_type || 'percentage',
+        discount_value: formData.discount_value || 0,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        is_active: formData.is_active || false,
+        code: formData.code.trim().toUpperCase()
+      };
+
+      console.log('Dados para atualização:', dadosAtualizacao);
+
+      if (promocaoEmEdicao) {
+        console.log('Atualizando promoção existente:', promocaoEmEdicao.id);
+        // Atualizar promoção existente
+        const { data, error } = await supabase
+          .from('promotions')
+          .update({
+            ...dadosAtualizacao,
+            code: promocaoEmEdicao.code // Mantém o código original
+          })
+          .eq('id', promocaoEmEdicao.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Erro ao atualizar promoção:', error);
+          toast.error(`Erro ao atualizar promoção: ${error.message}`);
+          return;
+        }
+
+        console.log('Promoção atualizada com sucesso:', data);
+        setPromocoes(promocoes.map(p => 
+          p.id === promocaoEmEdicao.id ? { ...data, code: promocaoEmEdicao.code } : p
+        ));
+
+        toast.success('Promoção atualizada com sucesso!');
+      } else {
+        console.log('Criando nova promoção');
+        // Verificar se já existe uma promoção com o mesmo código
+        const { data: existingPromo } = await supabase
+          .from('promotions')
+          .select('id')
+          .eq('code', dadosAtualizacao.code)
+          .single();
+
+        if (existingPromo) {
+          toast.error('Já existe uma promoção com este código');
+          return;
+        }
+
+        // Criar nova promoção
+        const { data, error } = await supabase
         .from('promotions')
-        .insert([novaPromo]);
+          .insert([dadosAtualizacao])
+          .select()
+          .single();
       
       if (error) {
-        console.error('Erro ao salvar promoção no banco:', error);
-        // Continuar com adição local para fins de demonstração
+          console.error('Erro ao criar promoção:', error);
+          toast.error(`Erro ao criar promoção: ${error.message}`);
+          return;
+        }
+
+        console.log('Nova promoção criada com sucesso:', data);
+        setPromocoes([data, ...promocoes]);
+        toast.success('Promoção criada com sucesso!');
       }
-      
-      setPromocoes([novaPromo, ...promocoes]);
-      setModalNovaPromocaoAberto(false);
-      toast.success('Promoção criada com sucesso!');
+
+      // Limpa o formulário e fecha o modal
+      setModalAberto(false);
+      setPromocaoEmEdicao(null);
+      setFormData({
+        name: '',
+        description: '',
+        discount_type: 'percentage',
+        discount_value: 10,
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        is_active: true,
+        code: ''
+      });
     } catch (error) {
-      console.error('Erro ao criar promoção:', error);
-      toast.error('Erro ao criar promoção.');
+      console.error('Erro ao salvar promoção:', error);
+      toast.error('Erro ao salvar promoção. Verifique o console para mais detalhes.');
     }
   };
 
@@ -283,7 +369,7 @@ const Promocoes = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-medium text-gray-800">Promoções Ativas e Agendadas</h2>
           <button 
-            onClick={handleNovaPromocao}
+            onClick={() => setModalAberto(true)}
             className="px-4 py-2 bg-champagne-500 text-white rounded-md hover:bg-champagne-600"
           >
             Nova Promoção
@@ -305,6 +391,7 @@ const Promocoes = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Desconto</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -314,28 +401,36 @@ const Promocoes = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {promocoes.map((promocao) => (
                   <tr key={promocao.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{promocao.nome}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{promocao.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="font-mono bg-gray-100 px-2 py-1 rounded">{promocao.codigo}</span>
+                      <span className="font-mono bg-gray-100 px-2 py-1 rounded">{promocao.code}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{promocao.desconto}%</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(promocao.data_inicio).toLocaleDateString('pt-BR')} - {new Date(promocao.data_fim).toLocaleDateString('pt-BR')}
+                      {promocao.discount_type === 'percentage' ? 'Porcentagem' : 'Valor Fixo'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {promocao.discount_type === 'percentage' ? `${promocao.discount_value}%` : `R$ ${promocao.discount_value.toFixed(2)}`}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(promocao.start_date).toLocaleDateString('pt-BR')} - {new Date(promocao.end_date).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${promocao.ativa ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {promocao.ativa ? 'Ativa' : 'Inativa'}
+                      <span className={`px-2 py-1 text-xs rounded-full ${promocao.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {promocao.is_active ? 'Ativa' : 'Inativa'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button 
-                          onClick={() => atualizarStatusPromocao(promocao.id, !promocao.ativa)}
-                          className={promocao.ativa ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}
+                          onClick={() => atualizarStatusPromocao(promocao.id, !promocao.is_active)}
+                          className={promocao.is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}
                         >
-                          {promocao.ativa ? 'Desativar' : 'Ativar'}
+                          {promocao.is_active ? 'Desativar' : 'Ativar'}
                         </button>
-                        <button className="text-indigo-600 hover:text-indigo-900">
+                        <button 
+                          onClick={() => handleEditarPromocao(promocao)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
                           Editar
                         </button>
                       </div>
@@ -348,15 +443,30 @@ const Promocoes = () => {
         )}
       </div>
       
-      {/* Modal de Nova Promoção */}
-      {modalNovaPromocaoAberto && (
+      {/* Modal de Promoção */}
+      {modalAberto && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Nova Promoção</h2>
+                <h2 className="text-xl font-semibold">
+                  {promocaoEmEdicao ? 'Editar Promoção' : 'Nova Promoção'}
+                </h2>
                 <button 
-                  onClick={() => setModalNovaPromocaoAberto(false)}
+                  onClick={() => {
+                    setModalAberto(false);
+                    setPromocaoEmEdicao(null);
+                    setFormData({
+                      name: '',
+                      description: '',
+                      discount_type: 'percentage',
+                      discount_value: 10,
+                      start_date: new Date().toISOString(),
+                      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                      is_active: true,
+                      code: ''
+                    });
+                  }}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   ✕
@@ -370,8 +480,11 @@ const Promocoes = () => {
                   </label>
                   <input
                     type="text"
-                    value={novaPromocao.nome}
-                    onChange={(e) => setNovaPromocao({...novaPromocao, nome: e.target.value})}
+                    value={formData.name || ''}
+                    onChange={(e) => {
+                      console.log('Nome alterado:', e.target.value);
+                      setFormData({...formData, name: e.target.value});
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                     placeholder="Ex: Black Friday, Verão 2024..."
                     required
@@ -383,8 +496,11 @@ const Promocoes = () => {
                     Descrição
                   </label>
                   <textarea
-                    value={novaPromocao.descricao}
-                    onChange={(e) => setNovaPromocao({...novaPromocao, descricao: e.target.value})}
+                    value={formData.description || ''}
+                    onChange={(e) => {
+                      console.log('Descrição alterada:', e.target.value);
+                      setFormData({...formData, description: e.target.value});
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                     placeholder="Descrição da promoção (opcional)"
                     rows={2}
@@ -397,9 +513,12 @@ const Promocoes = () => {
                       Data de Início*
                     </label>
                     <input
-                      type="date"
-                      value={novaPromocao.data_inicio}
-                      onChange={(e) => setNovaPromocao({...novaPromocao, data_inicio: e.target.value})}
+                      type="datetime-local"
+                      value={formData.start_date ? new Date(formData.start_date).toISOString().slice(0, 16) : ''}
+                      onChange={(e) => {
+                        console.log('Data de início alterada:', e.target.value);
+                        setFormData({...formData, start_date: new Date(e.target.value).toISOString()});
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                       required
                     />
@@ -410,9 +529,12 @@ const Promocoes = () => {
                       Data de Término*
                     </label>
                     <input
-                      type="date"
-                      value={novaPromocao.data_fim}
-                      onChange={(e) => setNovaPromocao({...novaPromocao, data_fim: e.target.value})}
+                      type="datetime-local"
+                      value={formData.end_date ? new Date(formData.end_date).toISOString().slice(0, 16) : ''}
+                      onChange={(e) => {
+                        console.log('Data de término alterada:', e.target.value);
+                        setFormData({...formData, end_date: new Date(e.target.value).toISOString()});
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                       required
                     />
@@ -422,19 +544,34 @@ const Promocoes = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Porcentagem de Desconto*
+                      Tipo de Desconto*
+                    </label>
+                    <select
+                      value={formData.discount_type}
+                      onChange={(e) => setFormData({...formData, discount_type: e.target.value as 'percentage' | 'fixed'})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                    >
+                      <option value="percentage">Porcentagem (%)</option>
+                      <option value="fixed">Valor Fixo (R$)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Valor do Desconto*
                     </label>
                     <div className="flex items-center">
                       <input
                         type="number"
-                        value={novaPromocao.desconto}
-                        onChange={(e) => setNovaPromocao({...novaPromocao, desconto: Number(e.target.value)})}
+                        value={formData.discount_value}
+                        onChange={(e) => setFormData({...formData, discount_value: Number(e.target.value)})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                        min="1"
-                        max="99"
+                        min="0"
+                        step={formData.discount_type === 'percentage' ? '1' : '0.01'}
                         required
                       />
-                      <span className="ml-2">%</span>
+                      <span className="ml-2">{formData.discount_type === 'percentage' ? '%' : 'R$'}</span>
+                    </div>
                     </div>
                   </div>
                   
@@ -445,51 +582,71 @@ const Promocoes = () => {
                     <div className="flex">
                       <input
                         type="text"
-                        value={novaPromocao.codigo}
-                        onChange={(e) => setNovaPromocao({...novaPromocao, codigo: e.target.value.toUpperCase()})}
+                      value={formData.code}
+                      onChange={(e) => setFormData({...formData, code: e.target.value.toUpperCase()})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                         placeholder="Ex: VERAO2024"
                         required
+                      disabled={promocaoEmEdicao !== null}
                       />
+                    {!promocaoEmEdicao && (
                       <button
                         type="button"
-                        onClick={() => setNovaPromocao({...novaPromocao, codigo: gerarCodigoAleatorio()})}
+                        onClick={() => setFormData({...formData, code: gerarCodigoAleatorio()})}
                         className="px-4 py-2 bg-gray-200 text-gray-700 rounded-r-md hover:bg-gray-300"
                       >
                         Gerar
                       </button>
-                    </div>
+                    )}
                   </div>
+                  {promocaoEmEdicao && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      O código da promoção não pode ser alterado após a criação.
+                    </p>
+                  )}
                 </div>
                 
                 <div className="flex items-center">
                   <input
                     type="checkbox"
-                    id="ativa"
-                    checked={novaPromocao.ativa}
-                    onChange={(e) => setNovaPromocao({...novaPromocao, ativa: e.target.checked})}
+                    id="is_active"
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
                     className="h-4 w-4 text-champagne-500 border-gray-300 rounded focus:ring-champagne-500"
                   />
-                  <label htmlFor="ativa" className="ml-2 block text-sm text-gray-900">
+                  <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
                     Ativar promoção imediatamente
                   </label>
                 </div>
               </div>
               
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end space-x-4">
                 <button
                   type="button"
-                  onClick={() => setModalNovaPromocaoAberto(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 mr-2 hover:bg-gray-50"
+                  onClick={() => {
+                    setModalAberto(false);
+                    setPromocaoEmEdicao(null);
+                    setFormData({
+                      name: '',
+                      description: '',
+                      discount_type: 'percentage',
+                      discount_value: 10,
+                      start_date: new Date().toISOString(),
+                      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                      is_active: true,
+                      code: ''
+                    });
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
-                  onClick={handleSalvarPromocao}
+                  onClick={handleSalvar}
                   className="px-4 py-2 bg-champagne-500 text-white rounded-md hover:bg-champagne-600 transition-colors"
                 >
-                  Salvar Promoção
+                  {promocaoEmEdicao ? 'Salvar Alterações' : 'Criar Promoção'}
                 </button>
               </div>
             </div>

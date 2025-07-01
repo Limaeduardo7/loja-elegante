@@ -669,7 +669,7 @@ const ProductDetail = () => {
               <Button 
                 className={`py-7 px-8 text-base font-medium tracking-wide flex-1 shadow-lg hover:shadow-xl ${
                   stockInfo.available 
-                    ? "bg-green-600 hover:bg-green-700" 
+                    ? "bg-rose-300 hover:bg-rose-400" 
                     : "bg-gray-400 cursor-not-allowed"
                 }`}
                 onClick={buyNow}
@@ -681,7 +681,7 @@ const ProductDetail = () => {
               <Button 
                 className={`py-4 px-8 text-base font-light tracking-wide flex-1 ${
                   stockInfo.available 
-                    ? "bg-rose-300 hover:bg-rose-400" 
+                    ? "bg-black hover:bg-gray-800 text-white" 
                     : "bg-gray-300 cursor-not-allowed"
                 }`}
                 onClick={addToCart}

@@ -6,12 +6,13 @@ import { getOrCreateCart, addToCart } from '../lib/services/cartService';
 import { Product, Category } from '../types/product';
 import { PromoCards } from './PromoBanner';
 import { toast } from 'react-hot-toast';
+
 // Tipo para filtros
 type FilterOptions = {
   categories: string[];
   priceRange: { min: number; max: number };
-  tags: string[];
-  material: string | null;
+  onlyNew: boolean;
+  onlySale: boolean;
   sizes: string[];
   colors: string[];
 };
@@ -46,6 +47,7 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
     style: 'currency',
     currency: 'BRL',
   }).format(finalPrice / 10);
+  
   const handleClick = () => {
     navigate(`/produto/${product.id}`);
   };
@@ -59,12 +61,12 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
       {/* Badges / Etiquetas */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
         {product.is_new && (
-          <div className="bg-champagne-500 text-white text-xs px-2 py-1">
+          <div className="bg-black text-white text-xs px-2 py-1">
             Novo
           </div>
         )}
         {product.features?.includes('destaque') && (
-          <div className="bg-champagne-600 text-white text-xs px-2 py-1">
+          <div className="bg-green-600 text-white text-xs px-2 py-1">
             Mais Vendido
           </div>
         )}
@@ -141,14 +143,15 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
     </div>
   );
 };
+
 const Collection = () => {
   const [searchParams] = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     categories: [],
     priceRange: { min: 0, max: 5000 },
-    tags: [],
-    material: null,
+    onlyNew: false,
+    onlySale: false,
     sizes: [],
     colors: []
   });
@@ -159,63 +162,17 @@ const Collection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Estado para cores disponíveis
+  const [availableColors, setAvailableColors] = useState<string[]>([]);
+  
   // Estados para paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const productsPerPage = 9;
 
-  // Estados para dados dos filtros
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [availableMaterials, setAvailableMaterials] = useState<string[]>([]);
-  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
-  const [availableColors, setAvailableColors] = useState<string[]>([]);
-
   // Obter categoria da URL
   const categoriaSlug = searchParams.get('categoria');
-
-  // Marcar categoria nos filtros quando vier pela URL
-  useEffect(() => {
-    if (categoriaSlug && categories.length > 0) {
-      // Procurar a categoria pelo slug
-      const category = categories.find(cat => cat.slug === categoriaSlug);
-      if (category) {
-        // Se encontrou a categoria, marcar ela nos filtros
-        setFilters(prev => ({
-          ...prev,
-          categories: [category.id]
-        }));
-      } else {
-        // Se não encontrou como categoria principal, procurar nas subcategorias
-        for (const mainCategory of categories) {
-          const subcategory = mainCategory.subcategories?.find(sub => sub.slug === categoriaSlug);
-          if (subcategory) {
-            // Se encontrou a subcategoria, marcar ela nos filtros
-            setFilters(prev => ({
-              ...prev,
-              categories: [subcategory.id]
-            }));
-            break;
-          }
-        }
-      }
-    }
-  }, [categoriaSlug, categories]);
-
-  // Limpar filtros quando a URL mudar
-  useEffect(() => {
-    // Se não tiver categoria na URL, limpar os filtros
-    if (!categoriaSlug) {
-      setFilters({
-        categories: [],
-        priceRange: { min: 0, max: 5000 },
-        tags: [],
-        material: null,
-        sizes: [],
-        colors: []
-      });
-    }
-  }, [categoriaSlug]);
 
   // Carregar produtos e categorias do banco de dados
   useEffect(() => {
@@ -242,8 +199,8 @@ const Collection = () => {
         // Verificar se há filtros ativos para aplicá-los à consulta
         const hasActiveFilters = 
           filters.categories.length > 0 || 
-          filters.tags.length > 0 ||
-          filters.material !== null ||
+          filters.onlyNew || 
+          filters.onlySale || 
           filters.sizes.length > 0 || 
           filters.colors.length > 0;
         
@@ -254,13 +211,9 @@ const Collection = () => {
           page: currentPage,
           categoryId: categoryId,
           categoryIds: hasActiveFilters && filters.categories.length > 0 ? filters.categories : null,
+          isFeatured: hasActiveFilters && filters.onlyNew,
           orderBy: 'created_at',
-          orderDirection: 'desc',
-          priceRange: filters.priceRange,
-          tags: filters.tags,
-          material: filters.material,
-          sizes: filters.sizes,
-          colors: filters.colors
+          orderDirection: 'desc'
         });
         
         if (productsError) throw productsError;
@@ -270,42 +223,30 @@ const Collection = () => {
         setTotalItems(count || 0);
         setTotalPages(pages || 1);
 
-        // Extrair dados únicos para os filtros
-        const uniqueTags = new Set<string>();
-        const uniqueMaterials = new Set<string>();
-        const uniqueSizes = new Set<string>();
+        // Extrair cores únicas dos produtos
         const uniqueColors = new Set<string>();
-
-        productsData?.forEach((product: Product) => {
-          // Tags
-          product.tags?.forEach((tag: string) => uniqueTags.add(tag));
-          
-          // Material
-          if (product.material) {
-            uniqueMaterials.add(product.material);
+        productsData?.forEach(product => {
+          if (product.variants) {
+            product.variants.forEach((variant: any) => {
+              if (variant.color?.name) {
+                uniqueColors.add(variant.color.name);
+              }
+            });
           }
-          
-          // Sizes
-          product.sizes?.forEach((size: string) => uniqueSizes.add(size));
-          
-          // Colors
-          product.colors?.forEach((color: string) => uniqueColors.add(color));
         });
-
-        setAvailableTags(Array.from(uniqueTags).sort());
-        setAvailableMaterials(Array.from(uniqueMaterials).sort());
-        setAvailableSizes(Array.from(uniqueSizes).sort());
         setAvailableColors(Array.from(uniqueColors).sort());
 
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
-        setError('Erro ao carregar produtos. Por favor, tente novamente.');
+        setError('Falha ao carregar produtos. Por favor, tente novamente mais tarde.');
       }
       setLoading(false);
     };
     
     fetchData();
-  }, [currentPage, filters, categoriaSlug]);  // Mudar página
+  }, [currentPage, filters, categoriaSlug]);
+
+  // Mudar página
   const paginate = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -334,31 +275,10 @@ const Collection = () => {
 
   const toggleCategory = (categoryId: string) => {
     setFilters(prev => ({
-          ...prev,
+      ...prev,
       categories: prev.categories.includes(categoryId)
         ? prev.categories.filter(id => id !== categoryId)
         : [...prev.categories, categoryId]
-    }));
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      categories: [],
-      priceRange: { min: 0, max: 5000 },
-      tags: [],
-      material: null,
-      sizes: [],
-      colors: []
-    });
-  };
-
-  // Funções auxiliares para manipulação dos filtros
-  const toggleTag = (tag: string) => {
-    setFilters(prev => ({
-      ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter(t => t !== tag)
-        : [...prev.tags, tag]
     }));
   };
 
@@ -380,6 +300,17 @@ const Collection = () => {
     }));
   };
 
+  const clearFilters = () => {
+    setFilters({
+      categories: [],
+      priceRange: { min: 0, max: 5000 },
+      onlyNew: false,
+      onlySale: false,
+      sizes: [],
+      colors: []
+    });
+  };
+
   const handleAddToCart = async (productId: string) => {
     try {
       const { cart } = await getOrCreateCart();
@@ -397,15 +328,17 @@ const Collection = () => {
       console.error('Erro ao adicionar ao carrinho:', error);
       toast.error('Erro ao adicionar produto ao carrinho');
     }
-  };  // Componente de painel de filtros
+  };
+
+  // Componente de painel de filtros
   const FilterPanel = () => (
     <div className="p-6 bg-white border border-gray-100 rounded-lg shadow-sm">
-      {/* Categorias */}
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-4">Categorias</h3>
         <div className="space-y-2">
           {categories.map(category => (
             <div key={category.id} className="space-y-2">
+              {/* Categoria principal */}
               <label className="flex items-center">
               <input
                 type="checkbox"
@@ -416,6 +349,7 @@ const Collection = () => {
                 <span className="ml-2 text-gray-700 font-medium">{category.name}</span>
               </label>
               
+              {/* Subcategorias */}
               {category.subcategories && category.subcategories.length > 0 && (
                 <div className="ml-6 space-y-2">
                   {category.subcategories.map(subcategory => (
@@ -427,7 +361,7 @@ const Collection = () => {
                         onChange={() => toggleCategory(subcategory.id)}
                       />
                       <span className="ml-2 text-gray-700 font-light">{subcategory.name}</span>
-            </label>
+                    </label>
                   ))}
                 </div>
               )}
@@ -436,7 +370,6 @@ const Collection = () => {
         </div>
       </div>
       
-      {/* Preço */}
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-4">Preço</h3>
         <div className="px-2">
@@ -450,57 +383,36 @@ const Collection = () => {
             max="5000"
             step="100"
             value={filters.priceRange.max}
-            onChange={(e) => setFilters(prev => ({
-              ...prev,
-              priceRange: { ...prev.priceRange, max: parseInt(e.target.value) }
-            }))}
+            onChange={(e) => setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: parseInt(e.target.value) } }))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-champagne-500"
           />
         </div>
       </div>
       
-      {/* Tags */}
-      {availableTags.length > 0 && (
       <div className="mb-6">
-          <h3 className="text-lg font-medium mb-4">Tags</h3>
+        <h3 className="text-lg font-medium mb-4">Filtros</h3>
         <div className="space-y-2">
-            {availableTags.map(tag => (
-              <label key={tag} className="flex items-center">
+          <label className="flex items-center">
             <input
               type="checkbox"
               className="form-checkbox h-4 w-4 text-champagne-500 rounded focus:ring-champagne-500"
-                  checked={filters.tags.includes(tag)}
-                  onChange={() => toggleTag(tag)}
+              checked={filters.onlyNew}
+              onChange={() => setFilters(prev => ({ ...prev, onlyNew: !prev.onlyNew }))}
             />
-                <span className="ml-2 text-gray-700 font-light">{tag}</span>
+            <span className="ml-2 text-gray-700 font-light">Apenas Novidades</span>
           </label>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Material */}
-      {availableMaterials.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-4">Material</h3>
-          <div className="space-y-2">
-            {availableMaterials.map(material => (
-              <label key={material} className="flex items-center">
+          <label className="flex items-center">
             <input
-                  type="radio"
-                  className="form-radio h-4 w-4 text-champagne-500 rounded focus:ring-champagne-500"
-                  checked={filters.material === material}
-                  onChange={() => setFilters(prev => ({ ...prev, material }))}
+              type="checkbox"
+              className="form-checkbox h-4 w-4 text-champagne-500 rounded focus:ring-champagne-500"
+              checked={filters.onlySale}
+              onChange={() => setFilters(prev => ({ ...prev, onlySale: !prev.onlySale }))}
             />
-                <span className="ml-2 text-gray-700 font-light">{material}</span>
+            <span className="ml-2 text-gray-700 font-light">Apenas Promoções</span>
           </label>
-            ))}
-          </div>
         </div>
-      )}
+      </div>
       
-      {/* Tamanhos */}
-      {availableSizes.length > 0 && (
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-4">Tamanhos</h3>
         <div className="flex flex-wrap gap-2">
@@ -519,10 +431,7 @@ const Collection = () => {
           ))}
         </div>
       </div>
-      )}
       
-      {/* Cores */}
-      {availableColors.length > 0 && (
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-4">Cores</h3>
         <div className="flex flex-wrap gap-2">
@@ -539,9 +448,7 @@ const Collection = () => {
           ))}
         </div>
       </div>
-      )}
       
-      {/* Botões de ação */}
       <div className="space-y-2">
         <button
           onClick={clearFilters}
@@ -554,8 +461,8 @@ const Collection = () => {
           onClick={() => setFilters({
             categories: [],
             priceRange: { min: 0, max: 5000 },
-            tags: [],
-            material: null,
+            onlyNew: false,
+            onlySale: false,
             sizes: [],
             colors: []
           })}
@@ -565,7 +472,9 @@ const Collection = () => {
         </button>
       </div>
     </div>
-  );  return (
+  );
+
+  return (
     <section className="py-16 bg-white mt-16">
       {/* SEO: Meta título e descrição */}
       <div className="hidden">
@@ -602,6 +511,9 @@ const Collection = () => {
                 Exibindo <span className="font-medium">{totalItems}</span> produtos
                 {filters.categories.length > 0 && (
                   <span className="ml-2">(Filtrado por categoria)</span>
+                )}
+                {filters.onlyNew && (
+                  <span className="ml-2">(Apenas destaques)</span>
                 )}
               </p>
               <button 
@@ -749,4 +661,4 @@ const Collection = () => {
   );
 };
 
-export default Collection;
+export default Collection; 

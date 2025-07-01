@@ -51,7 +51,7 @@
   from = "/webhook/pagarme"
   to = "/.netlify/functions/pagarme/webhook"
   status = 200
-  force = true
+  force = true 
 
 # Definição de funções serverless
 [functions]

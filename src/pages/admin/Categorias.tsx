@@ -527,17 +527,21 @@ const AdminCategorias: React.FC = () => {
   const renderModal = () => {
     if (!modalAberto) return null;
 
+    const isSubcategoria = !!categoriaAtual.parent_id;
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-lg w-full max-w-2xl">
           <div className="p-6">
             <h2 className="text-xl font-semibold mb-4">
-              {modoEdicao ? 'Editar Categoria' : 'Nova Categoria'}
+              {modoEdicao 
+                ? 'Editar ' + (isSubcategoria ? 'Subcategoria' : 'Categoria') 
+                : 'Nova ' + (isSubcategoria ? 'Subcategoria' : 'Categoria')}
             </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome da Categoria*
+                  Nome {isSubcategoria ? 'da Subcategoria' : 'da Categoria'}*
                 </label>
                 <input
                   type="text"
@@ -547,6 +551,11 @@ const AdminCategorias: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                   required
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  {isSubcategoria 
+                    ? 'Nome da subcategoria que será exibido dentro da categoria principal. Escolha um nome específico e relacionado à categoria pai.'
+                    : 'Nome que será exibido para os clientes. Escolha um nome claro e descritivo.'}
+                </p>
               </div>
               
               <div>
@@ -561,27 +570,12 @@ const AdminCategorias: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                   required
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  {isSubcategoria
+                    ? 'Identificador único usado na URL da subcategoria. Será combinado com o slug da categoria principal.'
+                    : 'Identificador único usado na URL da categoria. Gerado automaticamente a partir do nome, mas pode ser personalizado.'}
+                </p>
               </div>
-              
-              {/* Campo de Categoria Pai */}
-              {!categoriaAtual.parent_id && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Categoria Pai
-                  </label>
-                  <select
-                    name="parent_id"
-                    value={categoriaAtual.parent_id || ''}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                  >
-                    <option value="">Nenhuma (Categoria Principal)</option>
-                    {categorias.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.nome}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -594,6 +588,11 @@ const AdminCategorias: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
                   rows={3}
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  {isSubcategoria
+                    ? 'Breve descrição da subcategoria que ajuda a especificar melhor os produtos dentro desta classificação.'
+                    : 'Breve descrição da categoria que ajuda os clientes a entenderem melhor o tipo de produtos que encontrarão.'}
+                </p>
               </div>
               
               <div>
@@ -613,6 +612,11 @@ const AdminCategorias: React.FC = () => {
                 >
                   Selecionar imagem
                 </label>
+                <p className="text-sm text-gray-500 mt-1">
+                  {isSubcategoria
+                    ? 'Imagem opcional que representa a subcategoria. Recomendado: 800x400px, formato JPG ou PNG, máximo 2MB.'
+                    : 'Imagem que representa a categoria. Recomendado: 800x400px, formato JPG ou PNG, máximo 2MB.'}
+                </p>
                 
                 {imagemPreview && (
                   <div className="mt-2 relative">
@@ -652,8 +656,13 @@ const AdminCategorias: React.FC = () => {
                     } as any)}
                     className="rounded border-gray-300 text-champagne-500 focus:ring-champagne-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700">Categoria Ativa</span>
+                  <span className="ml-2 text-sm text-gray-700">{isSubcategoria ? 'Subcategoria Ativa' : 'Categoria Ativa'}</span>
                 </label>
+                <p className="text-sm text-gray-500 mt-1 ml-6">
+                  {isSubcategoria
+                    ? 'Quando desativada, a subcategoria não será exibida no site, mas seus produtos permanecem no banco de dados.'
+                    : 'Quando desativada, a categoria não será exibida no site, mas seus produtos permanecem no banco de dados.'}
+                </p>
               </div>
             </div>
             
@@ -676,7 +685,9 @@ const AdminCategorias: React.FC = () => {
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                     Salvando...
                   </span>
-                ) : modoEdicao ? 'Salvar Alterações' : 'Criar Categoria'}
+                ) : modoEdicao 
+                    ? `Salvar ${isSubcategoria ? 'Subcategoria' : 'Categoria'}`
+                    : `Criar ${isSubcategoria ? 'Subcategoria' : 'Categoria'}`}
               </button>
             </div>
           </div>

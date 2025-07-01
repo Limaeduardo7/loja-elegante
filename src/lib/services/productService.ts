@@ -13,22 +13,33 @@ export async function getProducts({
   categoryId = null,
   categoryIds = null,
   search = '',
-  isFeatured = false,
   orderBy = 'created_at',
-  orderDirection = 'desc'
+  orderDirection = 'desc',
+  priceRange = null,
+  tags = [],
+  material = null,
+  sizes = [],
+  colors = []
 }: {
   page?: number;
   categoryId?: string | null;
   categoryIds?: string[] | null;
   search?: string;
-  isFeatured?: boolean;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
+  priceRange?: { min: number; max: number } | null;
+  tags?: string[];
+  material?: string | null;
+  sizes?: string[];
+  colors?: string[];
 }) {
   // Cache key baseado nos parâmetros da consulta
-  const cacheKey = `products_${page}_${categoryId}_${categoryIds?.join(',')}_${search}_${isFeatured}_${orderBy}_${orderDirection}`;
+  const cacheKey = `products_${page}_${categoryId}_${categoryIds?.join(',')}_${search}_${orderBy}_${orderDirection}_${JSON.stringify(priceRange)}_${tags.join(',')}_${material}_${sizes.join(',')}_${colors.join(',')}`;
   
-  console.log('[getProducts] Parâmetros de busca:', { page, categoryId, categoryIds, search, isFeatured, orderBy, orderDirection });
+  console.log('[getProducts] Parâmetros de busca:', { 
+    page, categoryId, categoryIds, search, orderBy, orderDirection,
+    priceRange, tags, material, sizes, colors
+  });
   
   // Verificar se temos uma versão em cache válida
   const cachedData = productCache[cacheKey];
@@ -45,27 +56,43 @@ export async function getProducts({
       .select(`
         *,
         category:categories!inner(*),
-        images:product_images(id, url, alt_text, is_main)
+        images:product_images(id, url, alt_text, is_main),
+        variants:color_size_variants(stock_quantity)
       `, { count: 'exact' })
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .eq('in_stock', true);
 
-    // Aplicar filtros se fornecidos
+    // Aplicar filtros existentes
     if (categoryIds && categoryIds.length > 0) {
-      console.log('[getProducts] Aplicando filtro de múltiplas categorias:', categoryIds);
       query = query.in('category_id', categoryIds);
     } else if (categoryId) {
-      console.log('[getProducts] Aplicando filtro de categoria única:', categoryId);
       query = query.eq('category_id', categoryId);
     }
 
-    if (isFeatured) {
-      console.log('[getProducts] Aplicando filtro de destaque');
-      // Verificar produtos que têm "destaque" no array features
-      query = query.contains('features', ['destaque']);
+    // Novos filtros
+    if (priceRange) {
+      query = query
+        .gte('price', priceRange.min)
+        .lte('price', priceRange.max);
+    }
+
+    if (tags.length > 0) {
+      query = query.overlaps('tags', tags);
+    }
+
+    if (material) {
+      query = query.eq('material', material);
+    }
+
+    if (sizes.length > 0) {
+      query = query.overlaps('sizes', sizes);
+    }
+
+    if (colors.length > 0) {
+      query = query.overlaps('colors', colors);
     }
 
     if (search) {
-      console.log('[getProducts] Aplicando filtro de busca:', search);
       query = query.ilike('name', `%${search}%`);
     }
 
@@ -87,21 +114,52 @@ export async function getProducts({
 
     console.log('[getProducts] Resultados encontrados:', data?.length || 0, 'de total:', count);
 
+    // Filtrar produtos que têm estoque nas variantes
+    const productsWithStock = data?.filter(product => {
+      // Se não tem variantes, considerar em estoque se in_stock = true
+      if (!product.variants || product.variants.length === 0) {
+        return product.in_stock;
+      }
+      
+      // Se tem variantes, verificar se pelo menos uma tem estoque > 0
+      const totalStock = product.variants.reduce((sum: number, variant: any) => 
+        sum + (variant.stock_quantity || 0), 0
+      );
+      
+      return totalStock > 0;
+    });
+
+    console.log('[getProducts] Produtos com estoque após filtro:', productsWithStock?.length || 0);
+
     // Processar os dados para um formato mais amigável
-    const processedData = data?.map(product => ({
+    const processedData = productsWithStock?.map(product => {
+      // Encontrar imagem principal
+      let mainImage = null;
+      if (product.images && product.images.length > 0) {
+        const mainImg = product.images.find((img: any) => img.is_main === true);
+        mainImage = mainImg ? mainImg.url : product.images[0].url;
+      }
+      
+      // Calcular estoque total
+      const totalStock = product.variants?.reduce((sum: number, variant: any) => 
+        sum + (variant.stock_quantity || 0), 0) || 0;
+      
+      return {
       ...product,
-      mainImage: product.images?.find((img: { is_main: boolean; url: string }) => img.is_main)?.url || product.images?.[0]?.url,
-      images: product.images
-    }));
+        mainImage,
+        images: product.images,
+        totalStock
+      };
+    });
 
     // Armazenar em cache
     productCache[cacheKey] = { data: processedData, timestamp: Date.now() };
 
     return { 
       data: processedData, 
-      count, 
+      count: productsWithStock?.length || 0, 
       error: null,
-      totalPages: count ? Math.ceil(count / ITEMS_PER_PAGE) : 0
+      totalPages: productsWithStock ? Math.ceil(productsWithStock.length / ITEMS_PER_PAGE) : 0
     };
   } catch (error) {
     console.error('[getProducts] Erro ao buscar produtos:', error);
@@ -231,15 +289,17 @@ export async function getFeaturedProducts(limit = 6) {
   try {
     console.log('[getFeaturedProducts] Buscando produtos em destaque...');
     
-    // Buscar todos os produtos ativos
+    // Buscar produtos ativos e em estoque
     const { data, error } = await supabase
       .from('products')
       .select(`
         *,
         category:categories(id, name),
-        images:product_images(url, is_main)
+        images:product_images(url, is_main),
+        variants:color_size_variants(stock_quantity)
       `)
       .eq('is_active', true)
+      .eq('in_stock', true)
       .order('created_at', { ascending: false })
       .limit(limit * 3); // Busca mais produtos porque vamos filtrar depois
 
@@ -249,10 +309,24 @@ export async function getFeaturedProducts(limit = 6) {
     }
 
     console.log('[getFeaturedProducts] Total de produtos ativos encontrados:', data?.length || 0);
-    console.log('[getFeaturedProducts] Estrutura do primeiro produto:', data && data.length > 0 ? JSON.stringify(data[0], null, 2) : 'Nenhum produto');
+
+    // Filtrar produtos que têm estoque nas variantes
+    const productsWithStock = data?.filter(product => {
+      // Se não tem variantes, considerar em estoque se in_stock = true
+      if (!product.variants || product.variants.length === 0) {
+        return product.in_stock;
+      }
+      
+      // Se tem variantes, verificar se pelo menos uma tem estoque > 0
+      const totalStock = product.variants.reduce((sum: number, variant: any) => 
+        sum + (variant.stock_quantity || 0), 0
+      );
+      
+      return totalStock > 0;
+    });
 
     // Filtrar produtos em destaque usando a função de verificação
-    const featuredProducts = data?.filter(product => {
+    const featuredProducts = productsWithStock?.filter(product => {
       const isFeature = isProdutoDestaque(product);
       console.log(`[getFeaturedProducts] Produto ${product.id} - ${product.name} - features:`, product.features, 'É destaque:', isFeature);
       return isFeature;
@@ -262,7 +336,13 @@ export async function getFeaturedProducts(limit = 6) {
 
     // Processar dados para incluir imagem principal
     const processedData = featuredProducts?.map(product => {
-      const mainImage = product.images?.find((img: any) => img.is_main)?.url || product.images?.[0]?.url;
+      // Encontrar imagem principal
+      let mainImage = null;
+      if (product.images && product.images.length > 0) {
+        const mainImg = product.images.find((img: any) => img.is_main === true);
+        mainImage = mainImg ? mainImg.url : product.images[0].url;
+      }
+      
       console.log(`[getFeaturedProducts] Imagem principal para ${product.name}:`, mainImage);
       return {
         ...product,

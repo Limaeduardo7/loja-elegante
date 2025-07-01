@@ -1,18 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Heart } from 'lucide-react';
-import { type Product } from '../data/products';
+import { type Product } from '../types/product';
 
 type ProductCardProps = {
   product: Product;
-  onProductClick?: (productId: number) => void;
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) => {
-  const { id, name, price, image, category, discount, isNew } = product;
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { id, name, price, mainImage, category, discount_percent, is_new } = product;
 
   // Calcular preço com desconto, se houver
-  const discountedPrice = discount ? price * (1 - discount / 100) : null;
+  const discountedPrice = discount_percent ? price * (1 - discount_percent / 100) : null;
   
   // Valor final para exibição (com desconto, se houver)
   const finalPrice = discountedPrice || price;
@@ -38,25 +37,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
     currency: 'BRL',
   }).format(installmentPrice);
 
-  // Função para lidar com o clique no produto
-  const handleClick = () => {
-    if (onProductClick) {
-      onProductClick(id);
-    }
-  };
-
   return (
-    <Link to={`/produto/${id}`} className="group" onClick={handleClick}>
+    <Link to={`/produto/${id}`} className="group">
       <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1">
         <div className="h-48 overflow-hidden">
           <img 
-            src={image} 
+            src={mainImage} 
             alt={name} 
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
         <div className="p-4">
-          <p className="text-sm text-gray-500 mb-1">{category}</p>
+          <p className="text-sm text-gray-500 mb-1">{category?.name || 'Sem categoria'}</p>
           <h3 className="font-semibold text-lg mb-2 line-clamp-1 font-title">{name}</h3>
           <div className="font-bold text-primary">
             {discountedPrice ? (

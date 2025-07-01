@@ -1,135 +1,99 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import { Metadata } from 'next';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ProductCard from '../../components/ProductCard';
-import { type Product } from '../../data/products';
-
-// Dados de exemplo para produtos
-const mockProducts: Product[] = [
-  {
-    id: 1,
-    name: 'Vestido Floral Verão',
-    price: 159.90,
-    image: 'https://images.unsplash.com/photo-1612336307429-8a898d10e223?q=80&w=1887&auto=format&fit=crop',
-    category: 'Vestidos',
-    description: 'Vestido leve com estampa floral perfeito para o verão. Feito com tecido respirável e design confortável.',
-    features: ['Tecido leve', 'Estampa floral', 'Ideal para verão', 'Fechamento com zíper'],
-    material: '100% Algodão',
-    sizes: ['P', 'M', 'G', 'GG'],
-    colors: [
-      { name: 'Rosa', value: '#FF6B81' },
-      { name: 'Azul', value: '#5D8BF4' },
-      { name: 'Verde', value: '#67C587' }
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1612336307429-8a898d10e223?q=80&w=1887&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?q=80&w=1888&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1888&auto=format&fit=crop'
-    ],
-    discount: 15,
-    isNew: true,
-    tags: ['Verão', 'Floral', 'Casual']
-  },
-  {
-    id: 2,
-    name: 'Blazer Slim Fit',
-    price: 299.90,
-    image: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1738&auto=format&fit=crop',
-    category: 'Blazers',
-    description: 'Blazer slim fit elegante para ocasiões formais ou casuais. Corte moderno e acabamento premium.',
-    features: ['Slim fit', 'Tecido durável', 'Forro interno', '2 bolsos frontais'],
-    material: '80% Poliéster, 20% Viscose',
-    sizes: ['P', 'M', 'G', 'GG'],
-    colors: [
-      { name: 'Preto', value: '#000000' },
-      { name: 'Azul Marinho', value: '#1F3A63' },
-      { name: 'Cinza', value: '#A0A0A0' }
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1738&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?q=80&w=1780&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?q=80&w=1776&auto=format&fit=crop'
-    ],
-    discount: 0,
-    isNew: false,
-    tags: ['Formal', 'Trabalho', 'Elegante']
-  },
-  {
-    id: 3,
-    name: 'Calça Jeans Skinny',
-    price: 129.90,
-    image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1887&auto=format&fit=crop',
-    category: 'Calças',
-    description: 'Calça jeans skinny com lavagem moderna e excelente caimento. Tecido com elastano para maior conforto.',
-    features: ['Corte skinny', 'Com elastano', 'Cintura média', '5 bolsos'],
-    material: '98% Algodão, 2% Elastano',
-    sizes: ['34', '36', '38', '40', '42', '44'],
-    colors: [
-      { name: 'Azul Claro', value: '#97B3D0' },
-      { name: 'Azul Escuro', value: '#2B4C7E' },
-      { name: 'Preto', value: '#000000' }
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1887&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1582418702059-97ebafb35d09?q=80&w=1915&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1604176354204-9268737828e4?q=80&w=1780&auto=format&fit=crop'
-    ],
-    discount: 10,
-    isNew: false,
-    tags: ['Casual', 'Jeans', 'Básico']
-  },
-  {
-    id: 4,
-    name: 'Camisa Social Slim',
-    price: 149.90,
-    image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=1925&auto=format&fit=crop',
-    category: 'Camisas',
-    description: 'Camisa social de corte slim com tecido de alta qualidade e acabamento impecável. Ideal para ocasiões formais.',
-    features: ['Corte slim', 'Botões perolizados', 'Tecido não amarrota facilmente', 'Punho clássico'],
-    material: '100% Algodão',
-    sizes: ['P', 'M', 'G', 'GG'],
-    colors: [
-      { name: 'Branco', value: '#FFFFFF' },
-      { name: 'Azul Claro', value: '#A9CCE3' },
-      { name: 'Rosa Claro', value: '#F5B7B1' },
-      { name: 'Listrado', value: '#E8E8E8' }
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=1925&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?q=80&w=1887&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1563630423918-b58f07336ac9?q=80&w=1887&auto=format&fit=crop'
-    ],
-    discount: 0,
-    isNew: true,
-    tags: ['Formal', 'Trabalho', 'Social']
-  }
-];
+import { getProducts } from '../../lib/services/productService';
+import { Product } from '../../types/product';
 
 export default function ProdutosPage() {
-  const router = useRouter();
-  const [products] = useState<Product[]>(mockProducts);
+  const searchParams = useSearchParams();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const handleProductClick = (productId: number) => {
-    router.push(`/produtos/${productId}`);
-  };
+  const categoria = searchParams.get('categoria');
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const { data, error, totalPages: total } = await getProducts({
+          page: currentPage,
+          categoryId: categoria || null,
+        });
+
+        if (error) {
+          console.error('Erro ao buscar produtos:', error);
+          return;
+        }
+
+        if (data) {
+          setProducts(data);
+          setTotalPages(total || 1);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [currentPage, categoria]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-champagne-500"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-light text-gray-800 mb-8">Produtos</h1>
+      <h1 className="text-3xl font-light text-gray-800 mb-8">
+        {categoria ? `Produtos - ${categoria}` : 'Todos os Produtos'}
+      </h1>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <ProductCard 
-            key={product.id} 
-            product={product} 
-            onProductClick={handleProductClick}
-          />
-        ))}
-      </div>
+      {products.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-gray-600">Nenhum produto encontrado nesta categoria.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={product}
+              />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8 space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === page
+                      ? 'bg-champagne-500 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 } 

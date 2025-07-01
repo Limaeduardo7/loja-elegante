@@ -260,12 +260,12 @@ const Configuracoes = () => {
         <h1 className="text-3xl font-light text-gray-900">
           Configurações da <span className="text-champagne-500">Loja</span>
         </h1>
-        <button 
+          <button 
           onClick={handleLogout}
           className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
-        >
+          >
           Sair
-        </button>
+          </button>
       </div>
 
       {/* Botão Gerenciar Banners */}
@@ -280,294 +280,294 @@ const Configuracoes = () => {
           </button>
         </div>
       </div>
-
+      
       {/* Formulário de Configurações */}
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Coluna da esquerda - Informações básicas */}
-          <div className="space-y-6">
-            <h2 className="text-lg font-medium text-gray-800 border-b pb-2">Informações Básicas</h2>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome da Loja*
-              </label>
-              <input
-                type="text"
-                value={configuracoes.nome_loja}
-                onChange={(e) => setConfiguracoes({...configuracoes, nome_loja: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Coluna da esquerda - Informações básicas */}
+              <div className="space-y-6">
+                <h2 className="text-lg font-medium text-gray-800 border-b pb-2">Informações Básicas</h2>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nome da Loja*
+                  </label>
+                  <input
+                    type="text"
+                    value={configuracoes.nome_loja}
+                    onChange={(e) => setConfiguracoes({...configuracoes, nome_loja: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Descrição da Loja
+                  </label>
+                  <textarea
+                    value={configuracoes.descricao_loja}
+                    onChange={(e) => setConfiguracoes({...configuracoes, descricao_loja: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      E-mail de Contato*
+                    </label>
+                    <input
+                      type="email"
+                      value={configuracoes.email_contato}
+                      onChange={(e) => setConfiguracoes({...configuracoes, email_contato: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Telefone de Contato
+                    </label>
+                    <input
+                      type="text"
+                      value={configuracoes.telefone_contato}
+                      onChange={(e) => setConfiguracoes({...configuracoes, telefone_contato: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Endereço Físico
+                  </label>
+                  <input
+                    type="text"
+                    value={configuracoes.endereco}
+                    onChange={(e) => setConfiguracoes({...configuracoes, endereco: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Horário de Funcionamento
+                  </label>
+                  <input
+                    type="text"
+                    value={configuracoes.horario_funcionamento}
+                    onChange={(e) => setConfiguracoes({...configuracoes, horario_funcionamento: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                  />
+                </div>
+              </div>
+              
+              {/* Coluna da direita - Imagens e redes sociais */}
+              <div className="space-y-6">
+                <h2 className="text-lg font-medium text-gray-800 border-b pb-2">Elementos Visuais e Redes Sociais</h2>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Logo da Loja
+                  </label>
+                  <div className="flex flex-col space-y-2">
+                    <input
+                      type="file"
+                      onChange={handleLogoChange}
+                      className="hidden"
+                      id="logo-upload"
+                      accept="image/*"
+                    />
+                    <label 
+                      htmlFor="logo-upload" 
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md cursor-pointer hover:bg-gray-300 inline-block w-full text-center"
+                    >
+                      Selecionar logo
+                    </label>
+                    {logoPreview && (
+                      <div className="mt-2 relative">
+                        <img 
+                          src={logoPreview} 
+                          alt="Logo da loja" 
+                          className="h-32 object-contain border rounded-md p-2"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => { setLogoPreview(null); setLogoFile(null); }}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Banner da Loja
+                  </label>
+                  <div className="flex flex-col space-y-2">
+                    <input
+                      type="file"
+                      onChange={handleBannerChange}
+                      className="hidden"
+                      id="banner-upload"
+                      accept="image/*"
+                    />
+                    <label 
+                      htmlFor="banner-upload" 
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md cursor-pointer hover:bg-gray-300 inline-block w-full text-center"
+                    >
+                      Selecionar banner
+                    </label>
+                    {bannerPreview && (
+                      <div className="mt-2 relative">
+                        <img 
+                          src={bannerPreview} 
+                          alt="Banner da loja" 
+                          className="h-32 w-full object-cover border rounded-md"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => { setBannerPreview(null); setBannerFile(null); }}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Redes Sociais
+                  </label>
+                  
+                  <div>
+                    <div className="flex items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700 mr-2">Instagram</span>
+                    </div>
+                    <input
+                      type="url"
+                      value={configuracoes.links_redes_sociais.instagram || ''}
+                      onChange={(e) => setConfiguracoes({
+                        ...configuracoes, 
+                        links_redes_sociais: {
+                          ...configuracoes.links_redes_sociais,
+                          instagram: e.target.value
+                        }
+                      })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                      placeholder="https://instagram.com/sualoja"
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700 mr-2">Facebook</span>
+                    </div>
+                    <input
+                      type="url"
+                      value={configuracoes.links_redes_sociais.facebook || ''}
+                      onChange={(e) => setConfiguracoes({
+                        ...configuracoes, 
+                        links_redes_sociais: {
+                          ...configuracoes.links_redes_sociais,
+                          facebook: e.target.value
+                        }
+                      })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                      placeholder="https://facebook.com/sualoja"
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700 mr-2">Twitter</span>
+                    </div>
+                    <input
+                      type="url"
+                      value={configuracoes.links_redes_sociais.twitter || ''}
+                      onChange={(e) => setConfiguracoes({
+                        ...configuracoes, 
+                        links_redes_sociais: {
+                          ...configuracoes.links_redes_sociais,
+                          twitter: e.target.value
+                        }
+                      })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                      placeholder="https://twitter.com/sualoja"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descrição da Loja
-              </label>
-              <textarea
-                value={configuracoes.descricao_loja}
-                onChange={(e) => setConfiguracoes({...configuracoes, descricao_loja: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                rows={3}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="mt-10 space-y-6">
+              <h2 className="text-lg font-medium text-gray-800 border-b pb-2">Configurações de Entrega e Política</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Taxa de Entrega Padrão (R$)
+                  </label>
+                  <input
+                    type="number"
+                    value={configuracoes.taxa_entrega}
+                    onChange={(e) => setConfiguracoes({...configuracoes, taxa_entrega: parseFloat(e.target.value)})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prazo de Entrega Estimado
+                  </label>
+                  <input
+                    type="text"
+                    value={configuracoes.prazo_entrega}
+                    onChange={(e) => setConfiguracoes({...configuracoes, prazo_entrega: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                    placeholder="Ex: 3 a 5 dias úteis"
+                  />
+                </div>
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  E-mail de Contato*
+                  Política de Devolução
                 </label>
-                <input
-                  type="email"
-                  value={configuracoes.email_contato}
-                  onChange={(e) => setConfiguracoes({...configuracoes, email_contato: e.target.value})}
+                <textarea
+                  value={configuracoes.politica_devolucao}
+                  onChange={(e) => setConfiguracoes({...configuracoes, politica_devolucao: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Telefone de Contato
-                </label>
-                <input
-                  type="text"
-                  value={configuracoes.telefone_contato}
-                  onChange={(e) => setConfiguracoes({...configuracoes, telefone_contato: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
+                  rows={4}
                 />
               </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Endereço Físico
-              </label>
-              <input
-                type="text"
-                value={configuracoes.endereco}
-                onChange={(e) => setConfiguracoes({...configuracoes, endereco: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-              />
+            <div className="mt-8 flex justify-end">
+              <button
+                type="submit"
+                disabled={salvando}
+                className={`px-6 py-2 bg-champagne-500 text-white rounded-md hover:bg-champagne-600 transition-colors ${salvando ? 'opacity-70 cursor-not-allowed' : ''}`}
+              >
+                {salvando ? (
+                  <span className="flex items-center">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                    Salvando...
+                  </span>
+                ) : 'Salvar Configurações'}
+              </button>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Horário de Funcionamento
-              </label>
-              <input
-                type="text"
-                value={configuracoes.horario_funcionamento}
-                onChange={(e) => setConfiguracoes({...configuracoes, horario_funcionamento: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-              />
-            </div>
-          </div>
-          
-          {/* Coluna da direita - Imagens e redes sociais */}
-          <div className="space-y-6">
-            <h2 className="text-lg font-medium text-gray-800 border-b pb-2">Elementos Visuais e Redes Sociais</h2>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Logo da Loja
-              </label>
-              <div className="flex flex-col space-y-2">
-                <input
-                  type="file"
-                  onChange={handleLogoChange}
-                  className="hidden"
-                  id="logo-upload"
-                  accept="image/*"
-                />
-                <label 
-                  htmlFor="logo-upload" 
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md cursor-pointer hover:bg-gray-300 inline-block w-full text-center"
-                >
-                  Selecionar logo
-                </label>
-                {logoPreview && (
-                  <div className="mt-2 relative">
-                    <img 
-                      src={logoPreview} 
-                      alt="Logo da loja" 
-                      className="h-32 object-contain border rounded-md p-2"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => { setLogoPreview(null); setLogoFile(null); }}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Banner da Loja
-              </label>
-              <div className="flex flex-col space-y-2">
-                <input
-                  type="file"
-                  onChange={handleBannerChange}
-                  className="hidden"
-                  id="banner-upload"
-                  accept="image/*"
-                />
-                <label 
-                  htmlFor="banner-upload" 
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md cursor-pointer hover:bg-gray-300 inline-block w-full text-center"
-                >
-                  Selecionar banner
-                </label>
-                {bannerPreview && (
-                  <div className="mt-2 relative">
-                    <img 
-                      src={bannerPreview} 
-                      alt="Banner da loja" 
-                      className="h-32 w-full object-cover border rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => { setBannerPreview(null); setBannerFile(null); }}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Redes Sociais
-              </label>
-              
-              <div>
-                <div className="flex items-center mb-1">
-                  <span className="text-sm font-medium text-gray-700 mr-2">Instagram</span>
-                </div>
-                <input
-                  type="url"
-                  value={configuracoes.links_redes_sociais.instagram || ''}
-                  onChange={(e) => setConfiguracoes({
-                    ...configuracoes, 
-                    links_redes_sociais: {
-                      ...configuracoes.links_redes_sociais,
-                      instagram: e.target.value
-                    }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                  placeholder="https://instagram.com/sualoja"
-                />
-              </div>
-              
-              <div>
-                <div className="flex items-center mb-1">
-                  <span className="text-sm font-medium text-gray-700 mr-2">Facebook</span>
-                </div>
-                <input
-                  type="url"
-                  value={configuracoes.links_redes_sociais.facebook || ''}
-                  onChange={(e) => setConfiguracoes({
-                    ...configuracoes, 
-                    links_redes_sociais: {
-                      ...configuracoes.links_redes_sociais,
-                      facebook: e.target.value
-                    }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                  placeholder="https://facebook.com/sualoja"
-                />
-              </div>
-              
-              <div>
-                <div className="flex items-center mb-1">
-                  <span className="text-sm font-medium text-gray-700 mr-2">Twitter</span>
-                </div>
-                <input
-                  type="url"
-                  value={configuracoes.links_redes_sociais.twitter || ''}
-                  onChange={(e) => setConfiguracoes({
-                    ...configuracoes, 
-                    links_redes_sociais: {
-                      ...configuracoes.links_redes_sociais,
-                      twitter: e.target.value
-                    }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                  placeholder="https://twitter.com/sualoja"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-10 space-y-6">
-          <h2 className="text-lg font-medium text-gray-800 border-b pb-2">Configurações de Entrega e Política</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Taxa de Entrega Padrão (R$)
-              </label>
-              <input
-                type="number"
-                value={configuracoes.taxa_entrega}
-                onChange={(e) => setConfiguracoes({...configuracoes, taxa_entrega: parseFloat(e.target.value)})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                step="0.01"
-                min="0"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Prazo de Entrega Estimado
-              </label>
-              <input
-                type="text"
-                value={configuracoes.prazo_entrega}
-                onChange={(e) => setConfiguracoes({...configuracoes, prazo_entrega: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-                placeholder="Ex: 3 a 5 dias úteis"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Política de Devolução
-            </label>
-            <textarea
-              value={configuracoes.politica_devolucao}
-              onChange={(e) => setConfiguracoes({...configuracoes, politica_devolucao: e.target.value})}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-champagne-500"
-              rows={4}
-            />
-          </div>
-        </div>
-        
-        <div className="mt-8 flex justify-end">
-          <button
-            type="submit"
-            disabled={salvando}
-            className={`px-6 py-2 bg-champagne-500 text-white rounded-md hover:bg-champagne-600 transition-colors ${salvando ? 'opacity-70 cursor-not-allowed' : ''}`}
-          >
-            {salvando ? (
-              <span className="flex items-center">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                Salvando...
-              </span>
-            ) : 'Salvar Configurações'}
-          </button>
-        </div>
-      </form>
+          </form>
     </div>
   );
 };

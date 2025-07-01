@@ -208,7 +208,7 @@ const About = () => {
               Acompanhe nossos bastidores, lançamentos exclusivos e dicas de estilo. Junte-se à nossa comunidade de mulheres elegantes!
             </p>
             <a 
-              href="https://www.instagram.com/use.lamone?igsh=ZGUzMzM3NWJiOQ==" 
+              href="https://www.instagram.com/uselamone" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="inline-flex items-center bg-rose-300 hover:bg-champagne-600 text-white px-8 py-3 rounded-full font-medium transition-colors shadow-md hover:shadow-lg"

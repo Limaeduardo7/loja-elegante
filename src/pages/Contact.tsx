@@ -168,7 +168,7 @@ const Contact = () => {
                     </svg>
                   </a>
                   <a 
-                    href="https://www.instagram.com/use.lamone?igsh=ZGUzMzM3NWJiOQ==" 
+                    href="https://www.instagram.com/uselamone" 
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center transition-all hover:shadow-md hover:bg-champagne-50 border border-gray-100"

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, ShoppingBag, Search, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchModal from './SearchModal';
+import CategoryDropdown from './CategoryDropdown';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 
@@ -17,6 +18,7 @@ const Header = ({ currentPage = 'home' }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showingSubcategories, setShowingSubcategories] = useState(false);
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const { cartItemsCount } = useCart();
@@ -149,6 +151,7 @@ const Header = ({ currentPage = 'home' }: HeaderProps) => {
             >
               Início
             </Link>
+            <CategoryDropdown />
             <Link 
               to="/colecao" 
               className={`${currentPage === 'collection' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer`}
@@ -218,65 +221,80 @@ const Header = ({ currentPage = 'home' }: HeaderProps) => {
             </div>
             <nav className="flex flex-col flex-grow">
               <div className="space-y-4 mb-8">
-                <Link 
-                  to="/" 
-                  className={`${currentPage === 'home' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Início
-                </Link>
-                <Link 
-                  to="/colecao" 
-                  className={`${currentPage === 'collection' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Coleção
-                </Link>
-                <Link 
-                  to="/sobre" 
-                  className={`${currentPage === 'about' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sobre
-                </Link>
-                <Link 
-                  to="/contato" 
-                  className={`${currentPage === 'contact' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Contato
-                </Link>
+                {!showingSubcategories && (
+                  <Link 
+                    to="/" 
+                    className={`${currentPage === 'home' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Início
+                  </Link>
+                )}
+                <CategoryDropdown 
+                  isMobile 
+                  onSelect={() => setIsMenuOpen(false)} 
+                  onShowingSubcategories={setShowingSubcategories}
+                />
+                {!showingSubcategories && (
+                  <>
+                    <Link 
+                      to="/colecao" 
+                      className={`${currentPage === 'collection' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Coleção
+                    </Link>
+                    <Link 
+                      to="/sobre" 
+                      className={`${currentPage === 'about' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sobre
+                    </Link>
+                    <Link 
+                      to="/contato" 
+                      className={`${currentPage === 'contact' ? 'text-champagne-500' : 'text-black'} font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 block`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Contato
+                    </Link>
+                  </>
+                )}
               </div>
               
-              <div className="border-t border-gray-100 my-4"></div>
-              
-              {/* Ícones centralizados verticalmente */}
-              <div className="flex flex-col space-y-6 my-auto">
-                <button
-                  className="text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setIsSearchOpen(true);
-                  }}
-                >
-                  <Search size={20} className="mr-3" />
-                  Pesquisar
-                </button>
-                {renderUserLink()}
-                <Link 
-                  to="/carrinho" 
-                  className={`text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <ShoppingBag size={20} className="mr-3" />
-                  Carrinho
-                  {cartItemsCount > 0 && (
-                    <span className="ml-3 bg-champagne-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                    </span>
-                  )}
-                </Link>
-              </div>
+              {!showingSubcategories && (
+                <>
+                  <div className="border-t border-gray-100 my-4"></div>
+                  
+                  {/* Ícones centralizados verticalmente */}
+                  <div className="flex flex-col space-y-6 my-auto">
+                    <button
+                      className="text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsSearchOpen(true);
+                      }}
+                    >
+                      <Search size={20} className="mr-3" />
+                      Pesquisar
+                    </button>
+                    {renderUserLink()}
+                    <Link 
+                      to="/carrinho" 
+                      className={`text-black font-light hover:text-champagne-500 transition-colors cursor-pointer py-2 flex items-center justify-center`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <ShoppingBag size={20} className="mr-3" />
+                      Carrinho
+                      {cartItemsCount > 0 && (
+                        <span className="ml-3 bg-champagne-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                        </span>
+                      )}
+                    </Link>
+                  </div>
+                </>
+              )}
             </nav>
           </div>
         </div>

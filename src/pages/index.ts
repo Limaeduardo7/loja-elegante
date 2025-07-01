@@ -22,4 +22,5 @@ export { default as AdminCategorias } from './admin/Categorias';
 export { default as NovoProduto } from './admin/NovoProduto';
 export { default as NovaCategoria } from './admin/NovaCategoria';
 export { default as Promocoes } from './admin/Promocoes';
-export { default as Configuracoes } from './admin/Configuracoes'; 
+export { default as Configuracoes } from './admin/Configuracoes';
+export { default as GerenciarBanners } from './admin/GerenciarBanners'; 

@@ -17,7 +17,7 @@ const Footer = () => {
               <a href="https://www.facebook.com/profile.php?id=100084470989204&mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="Facebook">
                 <Facebook size={18} />
               </a>
-              <a href="https://www.instagram.com/use.lamone?igsh=ZGUzMzM3NWJiOQ==" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="Instagram">
+              <a href="https://www.instagram.com/uselamone" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
               <a href="https://www.tiktok.com/@use.lamone1?_t=ZM-8vyXqazzs9O&_r=1" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="TikTok">
@@ -77,7 +77,7 @@ const Footer = () => {
                 <a href="https://www.facebook.com/profile.php?id=100084470989204&mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="Facebook">
                   <Facebook size={20} />
                 </a>
-                <a href="https://www.instagram.com/use.lamone?igsh=ZGUzMzM3NWJiOQ==" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="Instagram">
+                <a href="https://www.instagram.com/uselamone" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="Instagram">
                   <Instagram size={20} />
                 </a>
                 <a href="https://www.tiktok.com/@use.lamone1?_t=ZM-8vyXqazzs9O&_r=1" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-champagne-500 transition-colors" aria-label="TikTok">

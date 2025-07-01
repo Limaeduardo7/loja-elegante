@@ -37,7 +37,8 @@ import {
   PaymentSuccess,
   ProductDetail,
   Profile,
-  Promocoes
+  Promocoes,
+  GerenciarBanners
 } from './pages'
 
 // Importar AdminPedidos diretamente para evitar problemas
@@ -189,6 +190,14 @@ function App() {
               element={
                 <PrivateRoute adminOnly={true}>
                   <Promocoes />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/admin/banners" 
+              element={
+                <PrivateRoute adminOnly={true}>
+                  <GerenciarBanners />
                 </PrivateRoute>
               } 
             />

@@ -23,4 +23,14 @@ export {
   orderService,
   paymentService,
   pagarmeApiService
-}; 
+};
+
+export * from './bannerService';
+export * from './cartService';
+export * from './categoryService';
+export * from './melhorEnvio';
+export * from './orderService';
+export * from './pagarmeApiService';
+export * from './paymentService';
+export * from './productService';
+export * from './promotionService'; 

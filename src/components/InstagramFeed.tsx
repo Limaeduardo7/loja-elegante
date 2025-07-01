@@ -31,37 +31,37 @@ const InstagramFeed = () => {
           {
             id: '1',
             media_url: 'https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=1586',
-            permalink: 'https://www.instagram.com/use.lamone/',
+            permalink: 'https://www.instagram.com/uselamone',
             caption: 'Novidades para o verão!'
           },
           {
             id: '2',
             media_url: 'https://images.unsplash.com/photo-1475180098004-ca77a66827be?q=80&w=1586',
-            permalink: 'https://www.instagram.com/use.lamone/',
+            permalink: 'https://www.instagram.com/uselamone',
             caption: 'Coleção exclusiva'
           },
           {
             id: '3',
             media_url: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=1587',
-            permalink: 'https://www.instagram.com/use.lamone/',
+            permalink: 'https://www.instagram.com/uselamone',
             caption: 'Tendências da estação'
           },
           {
             id: '4',
             media_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1412',
-            permalink: 'https://www.instagram.com/use.lamone/',
+            permalink: 'https://www.instagram.com/uselamone',
             caption: 'Estilo e sofisticação'
           },
           {
             id: '5',
             media_url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1470',
-            permalink: 'https://www.instagram.com/use.lamone/',
+            permalink: 'https://www.instagram.com/uselamone',
             caption: 'Elegância em cada detalhe'
           },
           {
             id: '6',
             media_url: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=1386',
-            permalink: 'https://www.instagram.com/use.lamone/',
+            permalink: 'https://www.instagram.com/uselamone',
             caption: 'Moda que inspira'
           }
         ];
@@ -116,7 +116,7 @@ const InstagramFeed = () => {
               Instagram <span className="text-champagne-500">@uselamone</span>
             </h2>
             <a 
-              href="https://www.instagram.com/use.lamone?igsh=ZGUzMzM3NWJiOQ==" 
+              href="https://www.instagram.com/uselamone" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center text-champagne-500 hover:text-champagne-600 transition-colors font-light"
@@ -145,7 +145,7 @@ const InstagramFeed = () => {
               Instagram <span className="text-champagne-500">@uselamone</span>
             </h2>
             <a 
-              href="https://www.instagram.com/use.lamone?igsh=ZGUzMzM3NWJiOQ==" 
+              href="https://www.instagram.com/uselamone" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center text-champagne-500 hover:text-champagne-600 transition-colors font-light"
@@ -171,7 +171,7 @@ const InstagramFeed = () => {
             Instagram <span className="text-champagne-500">@uselamone</span>
           </h2>
           <a 
-            href="https://www.instagram.com/use.lamone?igsh=ZGUzMzM3NWJiOQ==" 
+            href="https://www.instagram.com/uselamone" 
             target="_blank" 
             rel="noopener noreferrer"
             className="inline-flex items-center text-champagne-500 hover:text-champagne-600 transition-colors font-light"
